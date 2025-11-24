@@ -1,0 +1,2092 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>拒绝无效加班：构建"汇报引擎" - v3.0 精致版</title>
+
+    <!-- Reveal.js -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reveal.min.css">
+
+    <!-- ECharts -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+    <style>
+        /* ========== 设计系统 - Design Tokens ========== */
+        :root {
+            /* 配色方案 - 深蓝渐变 + 橙紫强调 */
+            --bg-primary: linear-gradient(135deg, #0A0E27 0%, #1E293B 100%);
+            --bg-secondary: #1E293B;
+            --bg-card: rgba(30, 41, 59, 0.6);
+            --bg-card-hover: rgba(30, 41, 59, 0.85);
+
+            /* 强调色 - 渐变橙紫 */
+            --accent-gradient: linear-gradient(135deg, #FF6B6B 0%, #A855F7 100%);
+            --accent-orange: #FF6B6B;
+            --accent-purple: #A855F7;
+            --accent-blue: #3B82F6;
+            --accent-green: #10B981;
+
+            /* 文字颜色 */
+            --text-primary: #FFFFFF;
+            --text-secondary: #CBD5E1;
+            --text-muted: #64748B;
+
+            /* 边框和分割线 */
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --border-medium: rgba(255, 255, 255, 0.15);
+
+            /* 阴影系统 */
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.15);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.2);
+            --shadow-glow: 0 0 40px rgba(168, 85, 247, 0.3);
+
+            /* 间距系统 */
+            --space-xs: 8px;
+            --space-sm: 16px;
+            --space-md: 24px;
+            --space-lg: 40px;
+            --space-xl: 64px;
+
+            /* 圆角系统 */
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+
+            /* 字体系统 */
+            --font-sans: 'Noto Sans SC', 'PingFang SC', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+
+            /* 字号系统 */
+            --text-xs: 0.75rem;
+            --text-sm: 0.875rem;
+            --text-base: 1rem;
+            --text-lg: 1.125rem;
+            --text-xl: 1.25rem;
+            --text-2xl: 1.5rem;
+            --text-3xl: 2rem;
+            --text-4xl: 2.5rem;
+            --text-5xl: 3.5rem;
+        }
+
+        /* ========== 全局样式重置 ========== */
+        * {
+            box-sizing: border-box;
+        }
+
+        .reveal {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            font-weight: 400;
+        }
+
+        .reveal h1,
+        .reveal h2,
+        .reveal h3 {
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+        }
+
+        .reveal h1 {
+            font-size: var(--text-5xl);
+            margin-bottom: var(--space-lg);
+        }
+
+        .reveal h2 {
+            font-size: var(--text-3xl);
+            margin-bottom: var(--space-md);
+            font-weight: 900;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .reveal h3 {
+            font-size: var(--text-xl);
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-bottom: var(--space-sm);
+        }
+
+        .reveal p {
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-bottom: var(--space-sm);
+        }
+
+        .reveal ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .reveal li {
+            color: var(--text-secondary);
+            line-height: 1.8;
+            padding-left: var(--space-md);
+            position: relative;
+        }
+
+        .reveal li::before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: var(--accent-orange);
+            font-weight: bold;
+        }
+
+        /* ========== 布局组件 ========== */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 var(--space-lg);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-lg);
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-md);
+        }
+
+        /* ========== 卡片组件 ========== */
+        .card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--border-medium);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .card-icon {
+            font-size: var(--text-4xl);
+            margin-bottom: var(--space-sm);
+            display: block;
+        }
+
+        .card-title {
+            font-size: var(--text-xl);
+            font-weight: 700;
+            margin-bottom: var(--space-sm);
+            color: var(--text-primary);
+        }
+
+        .card-content {
+            font-size: var(--text-base);
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* ========== 特殊卡片样式 ========== */
+        .card-accent {
+            border-left: 4px solid transparent;
+            border-image: var(--accent-gradient) 1;
+        }
+
+        .card-glow {
+            box-shadow: var(--shadow-glow);
+        }
+
+        /* ========== 步骤列表组件 ========== */
+        .steps {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-sm);
+            max-width: 900px;
+            margin: var(--space-lg) auto;
+        }
+
+        .step {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: var(--space-md);
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            transition: all 0.3s ease;
+        }
+
+        .step:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--accent-purple);
+            transform: translateX(8px);
+        }
+
+        .step-number {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--accent-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--text-2xl);
+            font-weight: 900;
+            flex-shrink: 0;
+            box-shadow: var(--shadow-md);
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-title {
+            font-size: var(--text-lg);
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: var(--text-primary);
+        }
+
+        .step-desc {
+            font-size: var(--text-sm);
+            color: var(--text-muted);
+        }
+
+        /* ========== 技术栈标签 ========== */
+        .tech-stack {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: var(--space-md);
+            margin-top: var(--space-xl);
+        }
+
+        .tech-item {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 2px solid var(--border-medium);
+            border-radius: var(--radius-md);
+            padding: var(--space-sm) var(--space-lg);
+            font-size: var(--text-xl);
+            font-weight: 700;
+            transition: all 0.3s ease;
+        }
+
+        .tech-item:hover {
+            border-color: var(--accent-purple);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .tech-operator {
+            font-size: var(--text-3xl);
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 900;
+        }
+
+        /* ========== 对比表格 ========== */
+        .comparison-container {
+            max-width: 1000px;
+            margin: var(--space-lg) auto;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            overflow: hidden;
+            border-radius: var(--radius-lg);
+        }
+
+        .comparison-table thead {
+            background: var(--accent-gradient);
+        }
+
+        .comparison-table th {
+            padding: var(--space-md);
+            font-size: var(--text-lg);
+            font-weight: 700;
+            text-align: left;
+            color: #FFFFFF;
+        }
+
+        .comparison-table tbody tr {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .comparison-table tbody tr:hover {
+            background: var(--bg-card-hover);
+        }
+
+        .comparison-table td {
+            padding: var(--space-md);
+            color: var(--text-secondary);
+            font-size: var(--text-base);
+        }
+
+        .comparison-table td:first-child {
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        /* ========== 徽章组件 ========== */
+        .badge {
+            display: inline-block;
+            background: var(--accent-gradient);
+            padding: var(--space-md) var(--space-xl);
+            border-radius: var(--radius-xl);
+            font-size: var(--text-3xl);
+            font-weight: 900;
+            margin: var(--space-lg) 0;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .badge-large {
+            font-size: var(--text-4xl);
+            padding: var(--space-lg) calc(var(--space-xl) * 1.5);
+        }
+
+        /* ========== 隐喻卡片 ========== */
+        .metaphor-grid {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: var(--space-lg);
+            align-items: center;
+            max-width: 1100px;
+            margin: var(--space-xl) auto;
+        }
+
+        .metaphor-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 2px solid var(--border-medium);
+            border-radius: var(--radius-lg);
+            padding: var(--space-xl);
+            text-align: center;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .metaphor-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            border-color: var(--accent-purple);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .metaphor-icon {
+            font-size: 5rem;
+            margin-bottom: var(--space-md);
+            display: block;
+        }
+
+        .metaphor-title {
+            font-size: var(--text-2xl);
+            font-weight: 900;
+            margin-bottom: var(--space-sm);
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .metaphor-desc {
+            font-size: var(--text-base);
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .arrow-connector {
+            font-size: 4rem;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 900;
+        }
+
+        /* ========== 数据看板预览 ========== */
+        .dashboard-preview {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 2px solid var(--border-medium);
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
+            margin-top: var(--space-lg);
+        }
+
+        .dashboard-header {
+            font-size: var(--text-xl);
+            font-weight: 700;
+            margin-bottom: var(--space-md);
+            color: var(--text-primary);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-md);
+        }
+
+        .kpi-card {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(168, 85, 247, 0.2));
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-md);
+            padding: var(--space-md);
+            text-align: center;
+        }
+
+        .kpi-value {
+            font-size: var(--text-3xl);
+            font-weight: 900;
+            margin-bottom: var(--space-xs);
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .kpi-label {
+            font-size: var(--text-sm);
+            color: var(--text-muted);
+        }
+
+        /* ========== 行动步骤 ========== */
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-lg);
+            margin-top: var(--space-xl);
+        }
+
+        .action-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 2px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .action-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--accent-gradient);
+        }
+
+        .action-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--accent-purple);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .action-label {
+            font-size: var(--text-sm);
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: var(--space-sm);
+        }
+
+        .action-title {
+            font-size: var(--text-2xl);
+            font-weight: 900;
+            margin-bottom: var(--space-md);
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .action-desc {
+            font-size: var(--text-base);
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* ========== 图表容器 ========== */
+        .chart-container {
+            width: 100%;
+            height: 500px;
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: var(--space-md);
+            margin-top: var(--space-lg);
+        }
+
+        /* ========== 高亮文本 ========== */
+        .highlight {
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 900;
+        }
+
+        /* ========== 引用块 ========== */
+        .quote {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border-left: 4px solid transparent;
+            border-image: var(--accent-gradient) 1;
+            border-radius: var(--radius-md);
+            padding: var(--space-lg);
+            margin: var(--space-xl) auto;
+            max-width: 900px;
+        }
+
+        .quote-text {
+            font-size: var(--text-2xl);
+            font-weight: 700;
+            line-height: 1.5;
+            color: var(--text-primary);
+            margin-bottom: var(--space-sm);
+        }
+
+        .quote-author {
+            font-size: var(--text-base);
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        /* ========== 洞察卡片 ========== */
+        .insights-container {
+            max-width: 1000px;
+            margin: var(--space-lg) auto;
+        }
+
+        .insight-section {
+            margin-bottom: var(--space-lg);
+        }
+
+        .insight-heading {
+            font-size: var(--text-xl);
+            font-weight: 900;
+            margin-bottom: var(--space-md);
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .insight-item {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: var(--space-md);
+            margin-bottom: var(--space-sm);
+            display: flex;
+            gap: var(--space-md);
+            align-items: flex-start;
+        }
+
+        .insight-icon {
+            font-size: var(--text-2xl);
+            flex-shrink: 0;
+        }
+
+        .insight-content {
+            flex: 1;
+            font-size: var(--text-base);
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* ========== 动画效果 ========== */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .reveal .slides section > * {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        /* ========== 页面内滚动支持 ========== */
+        .reveal .slides section {
+            height: 100%;
+            overflow-y: auto !important;
+            overflow-x: hidden;
+        }
+
+        .reveal .slides {
+            overflow: visible !important;
+        }
+
+        /* 隐藏滚动条但保留滚动功能 */
+        .reveal .slides section::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+            display: none;
+        }
+
+        /* Firefox 隐藏滚动条 */
+        .reveal .slides section {
+            scrollbar-width: none;
+        }
+
+        /* IE/Edge 隐藏滚动条 */
+        .reveal .slides section {
+            -ms-overflow-style: none;
+        }
+
+        /* ========== 响应式调整 ========== */
+        @media (max-width: 768px) {
+            .grid-2, .grid-3, .metaphor-grid, .action-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .reveal h1 {
+                font-size: var(--text-3xl);
+            }
+
+            .reveal h2 {
+                font-size: var(--text-2xl);
+            }
+        }
+
+        /* ========== 页面特定样式 ========== */
+
+        /* 封面页 */
+        .cover-slide {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .cover-title {
+            font-size: var(--text-5xl);
+            font-weight: 900;
+            margin-bottom: var(--space-md);
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .cover-subtitle {
+            font-size: var(--text-xl);
+            color: var(--text-secondary);
+            margin-bottom: var(--space-xl);
+            text-align: center;
+        }
+
+        .cover-meta {
+            font-size: var(--text-base);
+            color: var(--text-muted);
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+
+            <!-- 第1页：封面 -->
+            <section class="cover-slide">
+                <h1 class="cover-title">拒绝无效加班<br>构建你的"汇报引擎"</h1>
+                <p class="cover-subtitle">AI 时代的数据汇报新范式 · 效率提升 12 倍</p>
+                <div class="tech-stack">
+                    <div class="tech-item">Gemini</div>
+                    <div class="tech-operator">×</div>
+                    <div class="tech-item">Trae</div>
+                </div>
+                <p class="cover-meta">Howie 黄楚皓 · 营客科技 · 2025.11</p>
+            </section>
+
+            <!-- 第2页：痛点展示 -->
+            <section>
+                <h2>传统汇报的三大痛点</h2>
+                <div class="grid-3">
+                    <div class="card card-accent">
+                        <span class="card-icon">⏰</span>
+                        <div class="card-title">低效重复</div>
+                        <div class="card-content">
+                            每月花 2 小时整理数据<br>
+                            制作 PPT 又要 2 小时<br>
+                            数据一变，全部重做
+                        </div>
+                    </div>
+                    <div class="card card-accent">
+                        <span class="card-icon">📊</span>
+                        <div class="card-title">表达受限</div>
+                        <div class="card-content">
+                            静态图表无法交互<br>
+                            数据更新需要重新制作<br>
+                            缺少动态展示效果
+                        </div>
+                    </div>
+                    <div class="card card-accent">
+                        <span class="card-icon">🔧</span>
+                        <div class="card-title">技术门槛</div>
+                        <div class="card-content">
+                            不会代码就做不了<br>
+                            依赖技术团队支持<br>
+                            学习成本高昂
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 第3页：核心隐喻 -->
+            <section>
+                <h2>AI 工作流：建筑师 + 3D 打印机</h2>
+                <div class="metaphor-grid">
+                    <div class="metaphor-card">
+                        <span class="metaphor-icon">🏗️</span>
+                        <div class="metaphor-title">Gemini</div>
+                        <div class="metaphor-desc">
+                            像建筑师一样<br>
+                            理解需求 · 清洗数据 · 设计结构
+                        </div>
+                    </div>
+                    <div class="arrow-connector">→</div>
+                    <div class="metaphor-card">
+                        <span class="metaphor-icon">🖨️</span>
+                        <div class="metaphor-title">Trae</div>
+                        <div class="metaphor-desc">
+                            像 3D 打印机一样<br>
+                            生成代码 · 构建页面 · 可视化数据
+                        </div>
+                    </div>
+                </div>
+                <p style="text-align: center; margin-top: 60px; font-size: var(--text-lg); color: var(--text-secondary);">
+                    你只需要用<span class="highlight">自然语言</span>描述需求，AI 完成所有技术工作
+                </p>
+            </section>
+
+            <!-- 第4页：Gemini 核心任务 -->
+            <section>
+                <h2>Gemini：数据清洗 + 智能计算</h2>
+                <div class="steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <div class="step-title">暴风吸入</div>
+                            <div class="step-desc">粘贴混乱的原始数据（Excel、文字、截图都可以）</div>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <div class="step-title">逻辑桥接</div>
+                            <div class="step-desc">理解你的业务需求，识别数据关系</div>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <div class="step-title">智能计算</div>
+                            <div class="step-desc">自动计算完成率、同比、环比等分析指标</div>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <div class="step-title">点石成金</div>
+                            <div class="step-desc">输出标准 CSV 格式（Excel 的纯文本版本）</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 第5页：Trae 核心任务 -->
+            <section>
+                <h2>Trae：代码生成 + 可视化构建</h2>
+                <div class="steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <div class="step-title">搭建框架</div>
+                            <div class="step-desc">生成 HTML PPT 基础结构（Reveal.js）</div>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <div class="step-title">注入数据</div>
+                            <div class="step-desc">将 CSV 数据转化为交互式图表（ECharts）</div>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <div class="step-title">美化样式</div>
+                            <div class="step-desc">应用现代化配色和视觉效果（CSS）</div>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <div class="step-title">一键导出</div>
+                            <div class="step-desc">保存为 .html 文件，浏览器直接打开</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 第6页：效率对比 -->
+            <section>
+                <h2>工作流对比：新旧效率差异</h2>
+                <div class="comparison-container">
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>任务</th>
+                                <th>传统方式</th>
+                                <th>AI 工作流</th>
+                                <th>效率提升</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>数据清洗</td>
+                                <td>30 分钟（手动筛选、计算）</td>
+                                <td>2 分钟（粘贴数据即可）</td>
+                                <td class="highlight">15×</td>
+                            </tr>
+                            <tr>
+                                <td>图表制作</td>
+                                <td>60 分钟（PPT 插入、调整）</td>
+                                <td>5 分钟（自动生成）</td>
+                                <td class="highlight">12×</td>
+                            </tr>
+                            <tr>
+                                <td>多维度分析</td>
+                                <td>90 分钟（人工计算+多图组合）</td>
+                                <td>8 分钟（一次性生成）</td>
+                                <td class="highlight">11×</td>
+                            </tr>
+                            <tr>
+                                <td>数据更新</td>
+                                <td>120 分钟（需要重做）</td>
+                                <td>3 分钟（刷新数据）</td>
+                                <td class="highlight">40×</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div style="text-align: center; margin-top: 40px;">
+                    <span class="badge-large">整体效率提升 12 倍</span>
+                </div>
+            </section>
+
+            <!-- 第7页：进阶能力展示 -->
+            <section>
+                <h2>进阶能力：不仅是图表，更是分析大脑</h2>
+                <div class="grid-3">
+                    <div class="card card-glow">
+                        <span class="card-icon">🎯</span>
+                        <div class="card-title">多维度分析</div>
+                        <div class="card-content">
+                            <ul style="list-style: none; padding: 0;">
+                                <li style="padding-left: 0;">完成率（实际÷目标）</li>
+                                <li style="padding-left: 0;">同比（今年 vs 去年）</li>
+                                <li style="padding-left: 0;">环比（本月 vs 上月）</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="card card-glow">
+                        <span class="card-icon">📊</span>
+                        <div class="card-title">数据看板</div>
+                        <div class="card-content">
+                            一屏展示所有 KPI<br>
+                            销售额 · 完成率<br>
+                            增长率 · 趋势图
+                        </div>
+                    </div>
+                    <div class="card card-glow">
+                        <span class="card-icon">🧠</span>
+                        <div class="card-title">AI 洞察</div>
+                        <div class="card-content">
+                            自动生成业绩分析<br>
+                            风险提示 · 行动建议<br>
+                            优先级排序
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-preview">
+                    <div class="dashboard-header">数据看板示例预览</div>
+                    <div class="dashboard-grid">
+                        <div class="kpi-card">
+                            <div class="kpi-value">315万</div>
+                            <div class="kpi-label">总销售额</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-value">118%</div>
+                            <div class="kpi-label">完成率</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-value">+28%</div>
+                            <div class="kpi-label">同比增长</div>
+                        </div>
+                    </div>
+                </div>
+
+                <p style="text-align: center; margin-top: 30px; font-size: var(--text-base); color: var(--text-muted);">
+                    详见课前手册 3.3 节《进阶数据分析能力》
+                </p>
+            </section>
+
+            <!-- 第8页：场景一 - 组织架构分析 -->
+            <section>
+                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 30px;">
+                    <span style="font-size: 48px;">👥</span>
+                    <div>
+                        <h2 style="margin: 0;">场景一：组织架构分析</h2>
+                        <p style="margin: 5px 0 0 0; color: var(--text-muted);">人员信息表 → 组织结构看板 · 用时 10分钟</p>
+                    </div>
+                </div>
+
+                <div class="grid-2" style="gap: 40px;">
+                    <!-- 左侧：需求与流程 -->
+                    <div>
+                        <div class="card" style="margin-bottom: 20px;">
+                            <div class="card-title">业务需求</div>
+                            <div class="card-content" style="text-align: left;">
+                                <p style="margin-bottom: 8px;"><strong>适用对象：</strong>HR、行政、管理层</p>
+                                <p style="margin-bottom: 8px;"><strong>数据来源：</strong>Excel 人员信息表</p>
+                                <p style="margin-bottom: 8px;"><strong>分析目标：</strong>多维度透视组织结构</p>
+                                <p style="margin-bottom: 0;"><strong>应用场景：</strong>年度汇报、组织盘点</p>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-title">📊 输出成果</div>
+                            <div class="card-content" style="text-align: left;">
+                                <p style="margin-bottom: 8px;">✅ 2×2 网格布局看板</p>
+                                <p style="margin-bottom: 8px;">✅ 4个维度饼图（部门/职级/年龄/学历）</p>
+                                <p style="margin-bottom: 8px;">✅ 自动计算人数与占比</p>
+                                <p style="margin-bottom: 0;">✅ 一页展示公司组织全貌</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 右侧：Prompt 示例 -->
+                    <div>
+                        <div class="card" style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3);">
+                            <div class="card-title" style="color: #3B82F6;">Step 1: Gemini 数据清洗</div>
+                            <div class="card-content" style="text-align: left; font-family: 'Monaco', 'Courier New', monospace; font-size: 13px; line-height: 1.6;">
+                                <p style="margin-bottom: 8px; color: var(--text-muted);">上传 Excel 文件后输入：</p>
+                                <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; margin-top: 10px;">
+                                    "请分析人员信息表，按以下维度整理成CSV：<br><br>
+                                    1. 部门分布：部门名称，人数，占比<br>
+                                    2. 职级结构：职级，人数，占比<br>
+                                    3. 年龄分布：年龄段，人数，占比<br>
+                                    4. 学历分布：学历，人数，占比<br><br>
+                                    每个维度输出一个独立 CSV。"
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card" style="background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.3); margin-top: 15px;">
+                            <div class="card-title" style="color: #A855F7;">Step 2: Trae 可视化</div>
+                            <div class="card-content" style="text-align: left; font-family: 'Monaco', 'Courier New', monospace; font-size: 13px; line-height: 1.6;">
+                                <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px;">
+                                    "创建组织分析看板：<br><br>
+                                    2×2 网格布局，每个维度一个饼图<br>
+                                    • 左上：部门分布（蓝色系）<br>
+                                    • 右上：职级结构（绿色系）<br>
+                                    • 左下：年龄分布（紫色系）<br>
+                                    • 右下：学历分布（橙色系）"
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 50px;">
+                    <p style="color: var(--text-muted); font-size: var(--text-sm);">👉 下一页查看完整效果展示</p>
+                </div>
+            </section>
+
+            <!-- 第9页：场景一 - 效果展示 -->
+            <section>
+                <h2>场景一：组织架构看板</h2>
+                <h3 style="color: var(--text-secondary); margin-top: -10px;">4个维度，一页看懂公司组织全貌</h3>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 50px;">
+                    <div class="chart-container" style="height: 280px;">
+                        <div id="scene1Chart1" style="width: 100%; height: 100%;"></div>
+                    </div>
+                    <div class="chart-container" style="height: 280px;">
+                        <div id="scene1Chart2" style="width: 100%; height: 100%;"></div>
+                    </div>
+                    <div class="chart-container" style="height: 280px;">
+                        <div id="scene1Chart3" style="width: 100%; height: 100%;"></div>
+                    </div>
+                    <div class="chart-container" style="height: 280px;">
+                        <div id="scene1Chart4" style="width: 100%; height: 100%;"></div>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- 第10页：场景二 - 广告投放分析 -->
+            <section>
+                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 30px;">
+                    <span style="font-size: 48px;">📢</span>
+                    <div>
+                        <h2 style="margin: 0;">场景二：广告投放分析</h2>
+                        <p style="margin: 5px 0 0 0; color: var(--text-muted);">ROI分析 + AI洞察 · 用时 15分钟</p>
+                    </div>
+                </div>
+
+                <div class="grid-2" style="gap: 40px;">
+                    <!-- 左侧：需求与流程 -->
+                    <div>
+                        <div class="card" style="margin-bottom: 20px;">
+                            <div class="card-title">业务需求</div>
+                            <div class="card-content" style="text-align: left;">
+                                <p style="margin-bottom: 8px;"><strong>适用对象：</strong>运营、市场部门</p>
+                                <p style="margin-bottom: 8px;"><strong>数据来源：</strong>广告投放平台数据导出</p>
+                                <p style="margin-bottom: 8px;"><strong>核心目标：</strong>快速计算ROI,生成分析报告</p>
+                                <p style="margin-bottom: 0;"><strong>核心亮点：</strong>AI自动生成洞察建议</p>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-title">📊 输出成果</div>
+                            <div class="card-content" style="text-align: left;">
+                                <p style="margin-bottom: 10px;">✅ 完整的3页分析报告</p>
+                                <p style="margin-bottom: 10px;">✅ 彩色标注的ROI表格</p>
+                                <p style="margin-bottom: 10px;">✅ 双Y轴可视化图表</p>
+                                <p style="margin-bottom: 0;">✅ AI专家级洞察建议</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 右侧：Prompt 示例 -->
+                    <div>
+                        <div class="card" style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); margin-bottom: 15px;">
+                            <div class="card-title" style="color: #3B82F6;">Step 1: Gemini 计算ROI</div>
+                            <div class="card-content" style="text-align: left; font-family: 'Monaco', 'Courier New', monospace; font-size: 13px; line-height: 1.6;">
+                                <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 6px;">
+                                    "请帮我计算以下指标：<br>
+                                    • 点击率 = 点击数 ÷ 曝光数 × 100%<br>
+                                    • ROI = 转化价值 ÷ 投放金额 × 100%<br><br>
+                                    并标注: 优秀(>150%) 良好(100-150%) 待优化(<100%)"
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card" style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); margin-bottom: 15px;">
+                            <div class="card-title" style="color: #22C55E;">Step 2: Gemini 生成洞察</div>
+                            <div class="card-content" style="text-align: left; font-family: 'Monaco', 'Courier New', monospace; font-size: 13px; line-height: 1.6;">
+                                <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 6px;">
+                                    "请以运营专家的身份分析以上数据,给出：<br>
+                                    1. 核心发现 (Top 3最重要的洞察)<br>
+                                    2. 风险提示 ⚠️<br>
+                                    3. 优化建议 (高/中/低优先级)"
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card" style="background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.3);">
+                            <div class="card-title" style="color: #A855F7;">Step 3: Trae 创建报告</div>
+                            <div class="card-content" style="text-align: left; font-family: 'Monaco', 'Courier New', monospace; font-size: 13px; line-height: 1.6;">
+                                <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 6px;">
+                                    "创建一个3页的PPT报告：<br>
+                                    • 第1页: 彩色标注的数据表格<br>
+                                    • 第2页: 双Y轴可视化图表<br>
+                                    • 第3页: AI洞察建议卡片"
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 50px;">
+                    <p style="color: var(--text-muted); font-size: var(--text-sm);">👉 下一页查看完整效果展示</p>
+                </div>
+            </section>
+
+            <!-- 第11页：场景二 - 效果展示 -->
+            <section>
+                <h2>场景二：广告投放ROI分析</h2>
+                <h3 style="color: var(--text-secondary); margin-top: -10px;">双Y轴图表 + AI专家级洞察,15分钟完成完整分析报告</h3>
+
+                <div style="display: flex; justify-content: center; margin-top: 60px;">
+                    <div class="chart-container" style="width: 90%; height: 450px;">
+                        <div id="scene2Chart" style="width: 100%; height: 100%;"></div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 50px;">
+                    <div class="quote" style="max-width: 900px;">
+                        <div class="quote-text">
+                            不仅自动计算ROI,还能像运营专家一样给出洞察建议。<br>
+                            <span class="highlight">传统需要1小时的分析工作,现在15分钟搞定</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 第12页：场景三 - 业绩数据看板 ⭐ 重点 -->
+            <section>
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 30px;">
+                    <span style="font-size: 48px;">📊</span>
+                    <span style="background: var(--accent-gradient); padding: 6px 16px; border-radius: 20px; font-size: var(--text-sm); font-weight: 700;">⭐ 重点演示</span>
+                    <div>
+                        <h2 style="margin: 0;">场景三：业绩数据看板</h2>
+                        <p style="margin: 5px 0 0 0; color: var(--text-muted);">多维度看板（完成率/同比/环比） · 用时 20分钟</p>
+                    </div>
+                </div>
+
+                <div class="grid-2" style="gap: 40px;">
+                    <!-- 左侧：需求与流程 -->
+                    <div>
+                        <div class="card" style="margin-bottom: 20px; border: 2px solid var(--accent-orange);">
+                            <div class="card-title">业务需求</div>
+                            <div class="card-content" style="text-align: left;">
+                                <p style="margin-bottom: 8px;"><strong>适用对象：</strong>销售管理、业务分析、高管</p>
+                                <p style="margin-bottom: 8px;"><strong>数据来源：</strong>Excel 业绩表</p>
+                                <p style="margin-bottom: 8px;"><strong>分析维度：</strong>产品/事业线/销售/团队</p>
+                                <p style="margin-bottom: 0;"><strong>核心价值：</strong>一屏展示所有关键指标</p>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-title">📊 输出成果</div>
+                            <div class="card-content" style="text-align: left;">
+                                <p style="margin-bottom: 8px;">✅ 4象限综合看板</p>
+                                <p style="margin-bottom: 8px;">✅ 左上：产品业绩对比（柱状+折线）</p>
+                                <p style="margin-bottom: 8px;">✅ 右上：事业线趋势（堆叠面积图）</p>
+                                <p style="margin-bottom: 8px;">✅ 左下：TOP销售排行（横向柱状图）</p>
+                                <p style="margin-bottom: 0;">✅ 右下：团队完成率仪表盘</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 右侧：Prompt 示例 -->
+                    <div>
+                        <div class="card" style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3);">
+                            <div class="card-title" style="color: #3B82F6;">Step 1: Gemini 多维度计算</div>
+                            <div class="card-content" style="text-align: left; font-family: 'Monaco', 'Courier New', monospace; font-size: 13px; line-height: 1.6;">
+                                <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px;">
+                                    "分析业绩数据，计算：<br><br>
+                                    • 完成率 = 实际÷目标×100%<br>
+                                    • 达标状态（≥100%）<br>
+                                    • 同比增长率（今年vs去年）<br>
+                                    • 环比增长率（本月÷上月-1）<br><br>
+                                    按4个维度分别输出CSV：<br>
+                                    产品 / 事业线 / 销售 / 团队"
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card" style="background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.3); margin-top: 15px;">
+                            <div class="card-title" style="color: #A855F7;">Step 2: Trae 创建看板</div>
+                            <div class="card-content" style="text-align: left; font-family: 'Monaco', 'Courier New', monospace; font-size: 13px; line-height: 1.6;">
+                                <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px;">
+                                    "创建业绩看板，4个区域：<br><br>
+                                    【左上】产品对比：目标vs实际+达标线<br>
+                                    【右上】事业线趋势：堆叠面积图<br>
+                                    【左下】TOP销售：横向柱状图+金牌<br>
+                                    【右下】团队仪表盘：颜色区分<br><br>
+                                    CSS Grid 2×2 / 商务深蓝主题"
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 50px;">
+                    <p style="color: var(--text-muted); font-size: var(--text-sm);">👉 下一页查看完整效果展示</p>
+                </div>
+            </section>
+
+            <!-- 第13页：场景三 - 效果展示 -->
+            <section>
+                <h2>场景三：4象限业绩看板</h2>
+                <h3 style="color: var(--text-secondary); margin-top: -10px;">像汽车仪表盘，所有关键指标一目了然</h3>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 50px;">
+                    <div class="chart-container" style="height: 280px;">
+                        <div id="scene3Chart1" style="width: 100%; height: 100%;"></div>
+                    </div>
+                    <div class="chart-container" style="height: 280px;">
+                        <div id="scene3Chart2" style="width: 100%; height: 100%;"></div>
+                    </div>
+                    <div class="chart-container" style="height: 280px;">
+                        <div id="scene3Chart3" style="width: 100%; height: 100%;"></div>
+                    </div>
+                    <div class="chart-container" style="height: 280px;">
+                        <div id="scene3Chart4" style="width: 100%; height: 100%;"></div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 40px;">
+                    <div class="quote" style="max-width: 800px;">
+                        <div class="quote-text">
+                            传统PPT要做10页图表，现在一页搞定。<br>
+                            像汽车仪表盘，<span class="highlight">所有关键指标一目了然</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 第14页：场景四 - HR 管理看板 -->
+            <section>
+                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 30px;">
+                    <span style="font-size: 48px;">🎯</span>
+                    <div>
+                        <h2 style="margin: 0;">场景四：HR 管理看板</h2>
+                        <p style="margin: 5px 0 0 0; color: var(--text-muted);">人力资源管理驾驶舱 · 用时 15分钟</p>
+                    </div>
+                </div>
+
+                <div class="grid-2" style="gap: 40px;">
+                    <!-- 左侧：需求与流程 -->
+                    <div>
+                        <div class="card" style="margin-bottom: 20px;">
+                            <div class="card-title">业务需求</div>
+                            <div class="card-content" style="text-align: left;">
+                                <p style="margin-bottom: 8px;"><strong>适用对象：</strong>HRBP、人力资源部门</p>
+                                <p style="margin-bottom: 8px;"><strong>数据来源：</strong>HR系统人员数据导出</p>
+                                <p style="margin-bottom: 8px;"><strong>核心目标：</strong>实时监控人员流动率</p>
+                                <p style="margin-bottom: 0;"><strong>核心价值：</strong>建立人力资源预警机制</p>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-title">📊 输出成果</div>
+                            <div class="card-content" style="text-align: left;">
+                                <p style="margin-bottom: 10px;">✅ HR管理驾驶舱看板</p>
+                                <p style="margin-bottom: 10px;">✅ 人员状态总览图表</p>
+                                <p style="margin-bottom: 10px;">✅ 流动率趋势分析</p>
+                                <p style="margin-bottom: 0;">✅ 15%风险预警线</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 右侧：Prompt 示例 -->
+                    <div>
+                        <div class="card" style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); margin-bottom: 15px;">
+                            <div class="card-title" style="color: #3B82F6;">Step 1: Gemini 数据整合</div>
+                            <div class="card-content" style="text-align: left; font-family: 'Monaco', 'Courier New', monospace; font-size: 13px; line-height: 1.6;">
+                                <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 6px;">
+                                    "请整合人员数据,按以下维度汇总：<br><br>
+                                    1. 在职状态: 在职/离职/试用期<br>
+                                    2. 部门人效: 人数/人均产出<br>
+                                    3. 流动率: 入职/离职/净增长<br>
+                                    4. 预警清单: 试用期员工/合同到期<br><br>
+                                    每个维度输出独立CSV文件"
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card" style="background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.3);">
+                            <div class="card-title" style="color: #A855F7;">Step 2: Trae 创建看板</div>
+                            <div class="card-content" style="text-align: left; font-family: 'Monaco', 'Courier New', monospace; font-size: 13px; line-height: 1.6;">
+                                <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 6px;">
+                                    "创建HR管理驾驶舱,2个图表布局：<br><br>
+                                    【左侧】人员状态: 环形图<br>
+                                    显示在职/试用期/离职比例<br><br>
+                                    【右侧】流动率: 双Y轴图<br>
+                                    显示入职vs离职 + 15%预警线<br><br>
+                                    使用清爽白底 + 彩色图表"
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 50px;">
+                    <p style="color: var(--text-muted); font-size: var(--text-sm);">👉 下一页查看完整效果展示</p>
+                </div>
+            </section>
+
+            <!-- 第15页：场景四 - 效果展示 -->
+            <section>
+                <h2>场景四：HR管理驾驶舱</h2>
+                <h3 style="color: var(--text-secondary); margin-top: -10px;">像汽车仪表盘,人力资源状况一目了然</h3>
+
+                <div style="display: flex; justify-content: center; gap: 40px; margin-top: 80px;">
+                    <div class="chart-container" style="width: 45%; height: 400px;">
+                        <div id="scene4Chart1" style="width: 100%; height: 100%;"></div>
+                    </div>
+                    <div class="chart-container" style="width: 45%; height: 400px;">
+                        <div id="scene4Chart2" style="width: 100%; height: 100%;"></div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 60px;">
+                    <div class="quote" style="max-width: 900px;">
+                        <div class="quote-text">
+                            人员状态 + 流动率趋势,两张图看懂整个公司的HR健康度。<br>
+                            <span class="highlight">15%预警线让风险提前可见</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 第16页：场景总结 -->
+            <section>
+                <h2>真实场景总结</h2>
+                <h3>核心逻辑都一样</h3>
+
+                <div class="grid-2" style="margin-top: 60px; gap: 40px;">
+                    <div class="card">
+                        <span class="card-icon">🔄</span>
+                        <div class="card-title">统一工作流</div>
+                        <div class="card-content" style="text-align: left;">
+                            <p style="margin-bottom: 15px; font-size: var(--text-lg); color: var(--text-primary); text-align: center;">
+                                <span class="highlight">数据清洗（Gemini）</span><br>
+                                <span style="font-size: 30px;">↓</span><br>
+                                <span class="highlight">多维计算（Gemini）</span><br>
+                                <span style="font-size: 30px;">↓</span><br>
+                                <span class="highlight">可视化呈现（Trae）</span>
+                            </p>
+                            <p style="margin: 0; color: var(--text-muted); font-size: var(--text-sm); text-align: center;">
+                                无论哪个场景，流程都是这三步
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <span class="card-icon">🎯</span>
+                        <div class="card-title">选择适合你的场景</div>
+                        <div class="card-content" style="text-align: left;">
+                            <p style="margin-bottom: 10px;">👥 <strong>场景一</strong>：适合HR/行政（入门级）</p>
+                            <p style="margin-bottom: 10px;">📢 <strong>场景二</strong>：适合运营/市场（中级+AI洞察）</p>
+                            <p style="margin-bottom: 10px;">📊 <strong>场景三</strong>：适合销售/管理（高级+多维度）</p>
+                            <p style="margin-bottom: 0;">🎯 <strong>场景四</strong>：适合HRBP/人力资源</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 50px;">
+                    <div class="quote" style="max-width: 900px;">
+                        <div class="quote-text" style="font-size: var(--text-xl);">
+                            你们回去之后，把自己的需求套进这个流程，<br>
+                            <span class="highlight">90%的汇报问题都能解决</span>
+                        </div>
+                        <div class="quote-author">
+                            完整 Prompt 模板详见《分享大纲 A.5 章节》
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 第17页：现场演示 -->
+            <section>
+                <h2>现场演示：Q3 销售数据可视化</h2>
+                <p style="text-align: center; font-size: var(--text-lg); color: var(--text-secondary); margin-bottom: 30px;">
+                    从 CSV 数据到交互式图表 · 全程 <span class="highlight">10 分钟</span>
+                </p>
+                <div class="chart-container">
+                    <div id="salesChart" style="width: 100%; height: 100%;"></div>
+                </div>
+            </section>
+
+            <!-- 第18页：AI 洞察示例 -->
+            <section>
+                <h2>AI 智能洞察与建议</h2>
+                <div class="insights-container">
+                    <div class="insight-section">
+                        <div class="insight-heading">核心发现</div>
+                        <div class="insight-item">
+                            <span class="insight-icon">💡</span>
+                            <div class="insight-content">
+                                <strong>华南区爆发式增长：</strong>9月销售80万，环比增长78%，完成率133%。推测促销活动效果显著，建议复制到其他大区
+                            </div>
+                        </div>
+                        <div class="insight-item">
+                            <span class="insight-icon">⚠️</span>
+                            <div class="insight-content">
+                                <strong>华东区波动较大：</strong>9月回落至95万（环比-21%）。需调查原因，可能是库存不足或竞品压力
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="insight-section">
+                        <div class="insight-heading">行动建议</div>
+                        <div class="insight-item">
+                            <span class="insight-icon">🔴</span>
+                            <div class="insight-content">
+                                <strong>高优先级：</strong>复盘华南区9月促销策略，10月在华东区试点
+                            </div>
+                        </div>
+                        <div class="insight-item">
+                            <span class="insight-icon">🟡</span>
+                            <div class="insight-content">
+                                <strong>中优先级：</strong>华北区开展市场调研，寻找新增长点
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <p style="text-align: center; margin-top: 30px; font-size: var(--text-sm); color: var(--text-muted); font-style: italic;">
+                    由 Gemini AI 自动生成
+                </p>
+            </section>
+
+            <!-- 第19页：核心金句 -->
+            <section>
+                <div class="quote">
+                    <div class="quote-text">
+                        未来的核心能力，不是"画图表"<br>
+                        而是<span class="highlight">"定义数据结构 + 分析维度"</span>
+                    </div>
+                    <div class="quote-author">
+                        —— AI 时代的工作方式变革
+                    </div>
+                </div>
+                <p style="text-align: center; font-size: var(--text-xl); color: var(--text-secondary); margin-top: 60px; line-height: 1.8;">
+                    工具会变，但<span class="highlight">思维方式</span>永远重要<br>
+                    学会拆解问题 → 定义数据 → 让 AI 实现
+                </p>
+            </section>
+
+            <!-- 第20页：三步行动计划 -->
+            <section>
+                <h2>三步行动计划</h2>
+                <div class="action-grid">
+                    <div class="action-card">
+                        <div class="action-label">Today</div>
+                        <div class="action-title">今天学基础</div>
+                        <div class="action-desc">
+                            数据清洗 → CSV 格式<br>
+                            图表生成 → 基础汇报<br>
+                            掌握核心工作流
+                        </div>
+                    </div>
+                    <div class="action-card">
+                        <div class="action-label">Tomorrow</div>
+                        <div class="action-title">明天用进阶</div>
+                        <div class="action-desc">
+                            完成率分析<br>
+                            同比环比趋势<br>
+                            数据看板综合展示
+                        </div>
+                    </div>
+                    <div class="action-card">
+                        <div class="action-label">Future</div>
+                        <div class="action-title">未来做专家</div>
+                        <div class="action-desc">
+                            AI 洞察自动化<br>
+                            团队流程推广<br>
+                            持续优化迭代
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 第21页：结束页 -->
+            <section class="cover-slide">
+                <h1 class="cover-title">谢谢！</h1>
+                <p class="cover-subtitle" style="margin-bottom: 60px;">
+                    现在开始，用 AI 构建你的汇报引擎
+                </p>
+                <div class="card" style="max-width: 600px; text-align: left;">
+                    <div class="card-title" style="text-align: center; margin-bottom: 20px;">课程资源</div>
+                    <div class="card-content">
+                        <p style="margin-bottom: 12px;">📖 课前手册：完整 Prompt 模板库</p>
+                        <p style="margin-bottom: 12px;">💬 微信交流群：扫码加入学员社群</p>
+                        <p style="margin-bottom: 12px;">🎥 视频回放：课后 48 小时内发送</p>
+                        <p style="margin-bottom: 0;">📧 联系讲师：howie@inngke.com</p>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- Reveal.js Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reveal.min.js"></script>
+    <script>
+        // 初始化 Reveal.js
+        Reveal.initialize({
+            hash: true,
+            transition: 'slide',
+            transitionSpeed: 'default',
+            backgroundTransition: 'fade',
+            controls: true,
+            progress: true,
+            center: false,  // 关闭垂直居中,允许从顶部开始显示
+            slideNumber: 'c/t',
+            showSlideNumber: 'all',
+
+            // 启用页面内滚动
+            scrollActivationWidth: null,  // 在所有宽度下都启用滚动
+
+            // 允许在幻灯片内滚动
+            scrollProgress: true,
+
+            // 视图配置
+            width: 1280,
+            height: 720,
+            margin: 0.04
+        });
+
+        // ECharts 销售图表
+        // 场景图表初始化
+        Reveal.on('slidechanged', event => {
+            // 场景一：组织架构分析 - 效果展示（第9页，索引8）
+            if (event.indexh === 8) {
+                initScene1Charts();
+            }
+            // 场景二：广告投放分析 - 效果展示（第11页，索引10）
+            if (event.indexh === 10) {
+                initScene2Chart();
+            }
+            // 场景三：业绩数据看板 - 效果展示（第13页，索引12）
+            if (event.indexh === 12) {
+                initScene3Charts();
+            }
+            // 场景四：HR管理看板 - 效果展示（第15页，索引14）
+            if (event.indexh === 14) {
+                initScene4Charts();
+            }
+            // 现场演示（第17页，索引16）
+            if (event.indexh === 16) {
+                initSalesChart();
+            }
+        });
+
+        // 场景一：组织架构分析 - 4个饼图
+        function initScene1Charts() {
+            // 部门分布
+            const chart1 = echarts.init(document.getElementById('scene1Chart1'));
+            chart1.setOption({
+                backgroundColor: 'transparent',
+                title: { text: '部门分布', left: 'center', textStyle: { color: '#FFFFFF', fontSize: 16 } },
+                tooltip: { trigger: 'item' },
+                series: [{
+                    type: 'pie',
+                    radius: ['40%', '70%'],
+                    data: [
+                        { value: 35, name: '技术部' },
+                        { value: 25, name: '产品部' },
+                        { value: 20, name: '运营部' },
+                        { value: 15, name: '市场部' },
+                        { value: 5, name: '其他' }
+                    ],
+                    label: { color: '#FFFFFF' },
+                    itemStyle: {
+                        color: function(params) {
+                            const colors = ['#3B82F6', '#60A5FA', '#93C5FD', '#BFDBFE', '#DBEAFE'];
+                            return colors[params.dataIndex];
+                        }
+                    }
+                }]
+            });
+
+            // 职级结构
+            const chart2 = echarts.init(document.getElementById('scene1Chart2'));
+            chart2.setOption({
+                backgroundColor: 'transparent',
+                title: { text: '职级结构', left: 'center', textStyle: { color: '#FFFFFF', fontSize: 16 } },
+                tooltip: { trigger: 'item' },
+                series: [{
+                    type: 'pie',
+                    radius: ['40%', '70%'],
+                    data: [
+                        { value: 10, name: 'P7+' },
+                        { value: 25, name: 'P6' },
+                        { value: 35, name: 'P5' },
+                        { value: 30, name: 'P4及以下' }
+                    ],
+                    label: { color: '#FFFFFF' },
+                    itemStyle: {
+                        color: function(params) {
+                            const colors = ['#10B981', '#34D399', '#6EE7B7', '#A7F3D0'];
+                            return colors[params.dataIndex];
+                        }
+                    }
+                }]
+            });
+
+            // 年龄分布
+            const chart3 = echarts.init(document.getElementById('scene1Chart3'));
+            chart3.setOption({
+                backgroundColor: 'transparent',
+                title: { text: '年龄分布', left: 'center', textStyle: { color: '#FFFFFF', fontSize: 16 } },
+                tooltip: { trigger: 'item' },
+                series: [{
+                    type: 'pie',
+                    radius: ['40%', '70%'],
+                    data: [
+                        { value: 15, name: '25岁以下' },
+                        { value: 45, name: '25-30岁' },
+                        { value: 25, name: '30-35岁' },
+                        { value: 15, name: '35岁以上' }
+                    ],
+                    label: { color: '#FFFFFF' },
+                    itemStyle: {
+                        color: function(params) {
+                            const colors = ['#A855F7', '#C084FC', '#D8B4FE', '#E9D5FF'];
+                            return colors[params.dataIndex];
+                        }
+                    }
+                }]
+            });
+
+            // 学历分布
+            const chart4 = echarts.init(document.getElementById('scene1Chart4'));
+            chart4.setOption({
+                backgroundColor: 'transparent',
+                title: { text: '学历分布', left: 'center', textStyle: { color: '#FFFFFF', fontSize: 16 } },
+                tooltip: { trigger: 'item' },
+                series: [{
+                    type: 'pie',
+                    radius: ['40%', '70%'],
+                    data: [
+                        { value: 5, name: '博士' },
+                        { value: 60, name: '硕士' },
+                        { value: 30, name: '本科' },
+                        { value: 5, name: '专科及以下' }
+                    ],
+                    label: { color: '#FFFFFF' },
+                    itemStyle: {
+                        color: function(params) {
+                            const colors = ['#F97316', '#FB923C', '#FDBA74', '#FED7AA'];
+                            return colors[params.dataIndex];
+                        }
+                    }
+                }]
+            });
+        }
+
+        // 场景二：广告投放分析 - 双Y轴图
+        function initScene2Chart() {
+            const chart = echarts.init(document.getElementById('scene2Chart'));
+            chart.setOption({
+                backgroundColor: 'transparent',
+                title: {
+                    text: '广告渠道 ROI 分析',
+                    left: 'center',
+                    textStyle: { color: '#FFFFFF', fontSize: 20 }
+                },
+                tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
+                legend: {
+                    data: ['投放金额', 'ROI'],
+                    top: '10%',
+                    textStyle: { color: '#CBD5E1' }
+                },
+                grid: { left: '10%', right: '10%', bottom: '15%', top: '25%' },
+                xAxis: {
+                    type: 'category',
+                    data: ['百度', '抖音', '微信', '小红书', '知乎'],
+                    axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.15)' } },
+                    axisLabel: { color: '#CBD5E1' }
+                },
+                yAxis: [
+                    {
+                        type: 'value',
+                        name: '投放金额（元）',
+                        nameTextStyle: { color: '#CBD5E1' },
+                        axisLabel: { color: '#CBD5E1' },
+                        splitLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.1)' } }
+                    },
+                    {
+                        type: 'value',
+                        name: 'ROI (%)',
+                        nameTextStyle: { color: '#CBD5E1' },
+                        axisLabel: { color: '#CBD5E1', formatter: '{value}%' },
+                        splitLine: { show: false }
+                    }
+                ],
+                series: [
+                    {
+                        name: '投放金额',
+                        type: 'bar',
+                        data: [10000, 15000, 8000, 12000, 6000],
+                        itemStyle: {
+                            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                { offset: 0, color: '#3B82F6' },
+                                { offset: 1, color: '#1E3A8A' }
+                            ])
+                        }
+                    },
+                    {
+                        name: 'ROI',
+                        type: 'line',
+                        yAxisIndex: 1,
+                        data: [300, 600, 281, 562, 250],
+                        itemStyle: { color: '#22C55E' },
+                        lineStyle: { width: 3 },
+                        markLine: {
+                            data: [{ yAxis: 100, name: '达标线' }],
+                            lineStyle: { color: '#EF4444', type: 'dashed' },
+                            label: { color: '#EF4444' }
+                        }
+                    }
+                ]
+            });
+        }
+
+        // 场景三：业绩数据看板 - 4象限
+        function initScene3Charts() {
+            // 左上：产品业绩对比
+            const chart1 = echarts.init(document.getElementById('scene3Chart1'));
+            chart1.setOption({
+                backgroundColor: 'transparent',
+                title: { text: '产品业绩对比', left: 'center', textStyle: { color: '#FFFFFF', fontSize: 14 } },
+                tooltip: { trigger: 'axis' },
+                legend: { data: ['目标', '实际', '完成率'], top: '12%', textStyle: { color: '#CBD5E1', fontSize: 11 } },
+                grid: { left: '15%', right: '15%', bottom: '15%', top: '30%' },
+                xAxis: {
+                    type: 'category',
+                    data: ['产品A', '产品B', '产品C'],
+                    axisLabel: { color: '#CBD5E1', fontSize: 11 }
+                },
+                yAxis: [
+                    { type: 'value', axisLabel: { color: '#CBD5E1', fontSize: 11 }, splitLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.1)' } } },
+                    { type: 'value', axisLabel: { formatter: '{value}%', color: '#CBD5E1', fontSize: 11 }, splitLine: { show: false } }
+                ],
+                series: [
+                    { name: '目标', type: 'bar', data: [105, 165, 67], itemStyle: { color: '#60A5FA' } },
+                    { name: '实际', type: 'bar', data: [113, 195, 73], itemStyle: { color: '#22C55E' } },
+                    { name: '完成率', type: 'line', yAxisIndex: 1, data: [108, 118, 109], itemStyle: { color: '#F59E0B' }, lineStyle: { width: 2 } }
+                ]
+            });
+
+            // 右上：事业线趋势
+            const chart2 = echarts.init(document.getElementById('scene3Chart2'));
+            chart2.setOption({
+                backgroundColor: 'transparent',
+                title: { text: '事业线趋势', left: 'center', textStyle: { color: '#FFFFFF', fontSize: 14 } },
+                tooltip: { trigger: 'axis' },
+                legend: { data: ['事业线1', '事业线2'], top: '12%', textStyle: { color: '#CBD5E1', fontSize: 11 } },
+                grid: { left: '15%', right: '15%', bottom: '15%', top: '30%' },
+                xAxis: {
+                    type: 'category',
+                    data: ['7月', '8月', '9月'],
+                    axisLabel: { color: '#CBD5E1', fontSize: 11 }
+                },
+                yAxis: { type: 'value', axisLabel: { color: '#CBD5E1', fontSize: 11 }, splitLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.1)' } } },
+                series: [
+                    { name: '事业线1', type: 'line', data: [85, 95, 101], smooth: true, areaStyle: { opacity: 0.3 }, itemStyle: { color: '#3B82F6' } },
+                    { name: '事业线2', type: 'line', data: [95, 165, 174], smooth: true, areaStyle: { opacity: 0.3 }, itemStyle: { color: '#A855F7' } }
+                ]
+            });
+
+            // 左下：TOP销售排行
+            const chart3 = echarts.init(document.getElementById('scene3Chart3'));
+            chart3.setOption({
+                backgroundColor: 'transparent',
+                title: { text: 'TOP 销售排行', left: 'center', textStyle: { color: '#FFFFFF', fontSize: 14 } },
+                tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+                grid: { left: '25%', right: '10%', bottom: '10%', top: '25%' },
+                xAxis: { type: 'value', axisLabel: { color: '#CBD5E1', fontSize: 11 }, splitLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.1)' } } },
+                yAxis: { type: 'category', data: ['张三', '李四', '王五'], axisLabel: { color: '#CBD5E1', fontSize: 11 } },
+                series: [{
+                    type: 'bar',
+                    data: [
+                        { value: 113, itemStyle: { color: '#22C55E' } },
+                        { value: 195, itemStyle: { color: '#EAB308' } },
+                        { value: 73, itemStyle: { color: '#3B82F6' } }
+                    ],
+                    label: { show: true, position: 'right', color: '#FFFFFF', formatter: '{c}万' }
+                }]
+            });
+
+            // 右下：团队完成率仪表盘
+            const chart4 = echarts.init(document.getElementById('scene3Chart4'));
+            chart4.setOption({
+                backgroundColor: 'transparent',
+                title: { text: '团队完成率', left: 'center', textStyle: { color: '#FFFFFF', fontSize: 14 } },
+                series: [{
+                    type: 'gauge',
+                    radius: '70%',
+                    startAngle: 200,
+                    endAngle: -20,
+                    min: 0,
+                    max: 150,
+                    splitNumber: 5,
+                    axisLine: {
+                        lineStyle: {
+                            width: 15,
+                            color: [
+                                [0.67, '#EF4444'],
+                                [0.87, '#F59E0B'],
+                                [1, '#22C55E']
+                            ]
+                        }
+                    },
+                    pointer: { itemStyle: { color: '#FFFFFF' } },
+                    axisTick: { distance: -15, length: 5, lineStyle: { color: '#fff' } },
+                    splitLine: { distance: -20, length: 10, lineStyle: { color: '#fff' } },
+                    axisLabel: { color: '#CBD5E1', fontSize: 10, distance: -25 },
+                    detail: {
+                        valueAnimation: true,
+                        formatter: '{value}%',
+                        color: '#FFFFFF',
+                        fontSize: 20
+                    },
+                    data: [{ value: 113 }]
+                }]
+            });
+        }
+
+        // 场景四：HR管理看板 - 2个图表
+        function initScene4Charts() {
+            // 左：人员状态总览（环形图）
+            const chart1 = echarts.init(document.getElementById('scene4Chart1'));
+            chart1.setOption({
+                backgroundColor: 'transparent',
+                title: { text: '人员状态总览', left: 'center', textStyle: { color: '#FFFFFF', fontSize: 16 } },
+                tooltip: { trigger: 'item' },
+                legend: { bottom: '5%', left: 'center', textStyle: { color: '#CBD5E1' } },
+                series: [{
+                    type: 'pie',
+                    radius: ['40%', '70%'],
+                    avoidLabelOverlap: false,
+                    data: [
+                        { value: 85, name: '在职', itemStyle: { color: '#22C55E' } },
+                        { value: 10, name: '试用期', itemStyle: { color: '#F59E0B' } },
+                        { value: 5, name: '离职', itemStyle: { color: '#EF4444' } }
+                    ],
+                    label: { show: true, color: '#FFFFFF' },
+                    emphasis: { itemStyle: { shadowBlur: 10, shadowOffsetX: 0, shadowColor: 'rgba(0, 0, 0, 0.5)' } }
+                }]
+            });
+
+            // 右：流动率趋势（双轴图）
+            const chart2 = echarts.init(document.getElementById('scene4Chart2'));
+            chart2.setOption({
+                backgroundColor: 'transparent',
+                title: { text: '流动率趋势', left: 'center', textStyle: { color: '#FFFFFF', fontSize: 16 } },
+                tooltip: { trigger: 'axis' },
+                legend: { data: ['入职', '离职', '流动率'], bottom: '5%', textStyle: { color: '#CBD5E1' } },
+                grid: { left: '10%', right: '10%', bottom: '20%', top: '25%' },
+                xAxis: {
+                    type: 'category',
+                    data: ['7月', '8月', '9月'],
+                    axisLabel: { color: '#CBD5E1' }
+                },
+                yAxis: [
+                    { type: 'value', name: '人数', axisLabel: { color: '#CBD5E1' }, splitLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.1)' } } },
+                    { type: 'value', name: '流动率', axisLabel: { formatter: '{value}%', color: '#CBD5E1' }, splitLine: { show: false } }
+                ],
+                series: [
+                    { name: '入职', type: 'bar', data: [5, 8, 6], itemStyle: { color: '#22C55E' } },
+                    { name: '离职', type: 'bar', data: [3, 2, 4], itemStyle: { color: '#EF4444' } },
+                    {
+                        name: '流动率',
+                        type: 'line',
+                        yAxisIndex: 1,
+                        data: [8, 10, 10],
+                        itemStyle: { color: '#F59E0B' },
+                        lineStyle: { width: 3 },
+                        markLine: {
+                            data: [{ yAxis: 15, name: '预警线' }],
+                            lineStyle: { color: '#EF4444', type: 'dashed' }
+                        }
+                    }
+                ]
+            });
+        }
+        Reveal.on('slidechanged', event => {
+            if (event.indexh === 16) { // 第17页（索引从0开始）
+                initSalesChart();
+            }
+        });
+
+        function initSalesChart() {
+            const chartDom = document.getElementById('salesChart');
+            const myChart = echarts.init(chartDom);
+
+            const option = {
+                backgroundColor: 'transparent',
+                title: {
+                    text: 'Q3 区域销售趋势',
+                    left: 'center',
+                    textStyle: {
+                        color: '#FFFFFF',
+                        fontSize: 24,
+                        fontWeight: 'bold'
+                    }
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    backgroundColor: 'rgba(30, 41, 59, 0.95)',
+                    borderColor: 'rgba(255, 255, 255, 0.15)',
+                    textStyle: {
+                        color: '#FFFFFF'
+                    }
+                },
+                legend: {
+                    data: ['华东', '华南', '华北'],
+                    top: '10%',
+                    textStyle: {
+                        color: '#CBD5E1',
+                        fontSize: 14
+                    }
+                },
+                grid: {
+                    left: '5%',
+                    right: '5%',
+                    bottom: '5%',
+                    top: '25%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    data: ['7月', '8月', '9月'],
+                    axisLine: {
+                        lineStyle: {
+                            color: 'rgba(255, 255, 255, 0.15)'
+                        }
+                    },
+                    axisLabel: {
+                        color: '#CBD5E1',
+                        fontSize: 14
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '销售额（万元）',
+                    nameTextStyle: {
+                        color: '#CBD5E1',
+                        fontSize: 14
+                    },
+                    axisLine: {
+                        lineStyle: {
+                            color: 'rgba(255, 255, 255, 0.15)'
+                        }
+                    },
+                    axisLabel: {
+                        color: '#CBD5E1',
+                        fontSize: 12
+                    },
+                    splitLine: {
+                        lineStyle: {
+                            color: 'rgba(255, 255, 255, 0.08)'
+                        }
+                    }
+                },
+                series: [
+                    {
+                        name: '华东',
+                        type: 'line',
+                        smooth: true,
+                        data: [100, 120, 95],
+                        lineStyle: {
+                            width: 3,
+                            color: '#3B82F6'
+                        },
+                        itemStyle: {
+                            color: '#3B82F6',
+                            borderWidth: 2
+                        },
+                        areaStyle: {
+                            color: {
+                                type: 'linear',
+                                x: 0,
+                                y: 0,
+                                x2: 0,
+                                y2: 1,
+                                colorStops: [
+                                    { offset: 0, color: 'rgba(59, 130, 246, 0.3)' },
+                                    { offset: 1, color: 'rgba(59, 130, 246, 0.05)' }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        name: '华南',
+                        type: 'line',
+                        smooth: true,
+                        data: [40, 45, 80],
+                        lineStyle: {
+                            width: 3,
+                            color: '#A855F7'
+                        },
+                        itemStyle: {
+                            color: '#A855F7',
+                            borderWidth: 2
+                        },
+                        areaStyle: {
+                            color: {
+                                type: 'linear',
+                                x: 0,
+                                y: 0,
+                                x2: 0,
+                                y2: 1,
+                                colorStops: [
+                                    { offset: 0, color: 'rgba(168, 85, 247, 0.3)' },
+                                    { offset: 1, color: 'rgba(168, 85, 247, 0.05)' }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        name: '华北',
+                        type: 'line',
+                        smooth: true,
+                        data: [50, 50, 50],
+                        lineStyle: {
+                            width: 3,
+                            color: '#10B981'
+                        },
+                        itemStyle: {
+                            color: '#10B981',
+                            borderWidth: 2
+                        },
+                        areaStyle: {
+                            color: {
+                                type: 'linear',
+                                x: 0,
+                                y: 0,
+                                x2: 0,
+                                y2: 1,
+                                colorStops: [
+                                    { offset: 0, color: 'rgba(16, 185, 129, 0.3)' },
+                                    { offset: 1, color: 'rgba(16, 185, 129, 0.05)' }
+                                ]
+                            }
+                        }
+                    }
+                ]
+            };
+
+            myChart.setOption(option);
+
+            // 响应式调整
+            window.addEventListener('resize', function() {
+                myChart.resize();
+            });
+        }
+    </script>
+</body>
+</html>
