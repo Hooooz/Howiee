@@ -1,0 +1,977 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>拒绝无效加班：构建"汇报引擎" - 完整演示版</title>
+    <!-- Reveal.js -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reveal.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/theme/night.min.css">
+    <!-- ECharts -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Roboto+Mono&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --glow-orange: #ff6600;
+            --neon-blue: #00f3ff;
+            --cyber-purple: #a855f7;
+            --bg-dark: #1a1a1a;
+            --surface: #2b2b2b;
+            --text-primary: #ffffff;
+            --text-secondary: #999999;
+        }
+
+        .reveal {
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* 霓虹标题效果 */
+        .neon-title {
+            color: var(--neon-blue);
+            text-shadow:
+                0 0 10px var(--neon-blue),
+                0 0 20px var(--neon-blue),
+                0 0 40px var(--neon-blue),
+                0 0 80px var(--neon-blue);
+            animation: neon-flicker 2s infinite alternate;
+        }
+
+        @keyframes neon-flicker {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        /* 标题样式 */
+        .reveal h1, .reveal h2, .reveal h3 {
+            text-transform: none;
+            font-weight: 700;
+        }
+
+        .reveal h2 {
+            border-bottom: 3px solid var(--glow-orange);
+            display: inline-block;
+            padding-bottom: 15px;
+        }
+
+        .highlight {
+            color: var(--glow-orange);
+            font-weight: bold;
+        }
+
+        /* 技术栈标签 */
+        .tech-stack {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-top: 60px;
+            font-size: 1.2em;
+        }
+
+        .tech-item {
+            background: var(--surface);
+            padding: 15px 30px;
+            border-radius: 10px;
+            border: 2px solid var(--neon-blue);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.3);
+        }
+
+        .tech-item.highlight {
+            background: var(--glow-orange);
+            border-color: var(--glow-orange);
+            color: #000;
+            font-weight: bold;
+        }
+
+        .operator {
+            font-size: 2em;
+            color: var(--glow-orange);
+        }
+
+        /* 痛点卡片 */
+        .pain-points {
+            text-align: left;
+            padding: 40px;
+        }
+
+        .pain-item {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin: 30px 0;
+            padding: 20px;
+            background: var(--surface);
+            border-radius: 10px;
+            border-left: 5px solid #dc2626;
+            transition: transform 0.3s ease;
+        }
+
+        .pain-item:hover {
+            transform: translateX(10px);
+        }
+
+        .pain-item .icon {
+            font-size: 3em;
+        }
+
+        .pain-item p {
+            font-size: 1.3em;
+            margin: 0;
+        }
+
+        /* 隐喻卡片 */
+        .metaphor-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 40px;
+            margin-top: 60px;
+        }
+
+        .metaphor-card {
+            flex: 1;
+            background: var(--surface);
+            padding: 40px;
+            border-radius: 15px;
+            border: 2px solid var(--neon-blue);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .metaphor-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 243, 255, 0.3);
+        }
+
+        .metaphor-card .card-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .metaphor-card h3 {
+            color: var(--neon-blue);
+            margin-bottom: 20px;
+        }
+
+        .metaphor-card ul {
+            text-align: left;
+            list-style: none;
+            padding: 0;
+        }
+
+        .metaphor-card li {
+            padding: 10px 0;
+            border-bottom: 1px solid #444;
+        }
+
+        .metaphor-card li:last-child {
+            border-bottom: none;
+        }
+
+        .arrow {
+            font-size: 4em;
+            color: var(--glow-orange);
+        }
+
+        /* 流程步骤 */
+        .process-flow {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+            margin-top: 60px;
+        }
+
+        .process-step {
+            background: var(--surface);
+            padding: 30px;
+            border-radius: 10px;
+            border-left: 5px solid var(--neon-blue);
+            position: relative;
+        }
+
+        .process-step.highlight-step {
+            border-left-color: var(--glow-orange);
+            background: linear-gradient(135deg, var(--surface) 0%, rgba(255, 102, 0, 0.1) 100%);
+        }
+
+        .step-number {
+            position: absolute;
+            left: -25px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 50px;
+            height: 50px;
+            background: var(--neon-blue);
+            color: #000;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.5em;
+        }
+
+        .highlight-step .step-number {
+            background: var(--glow-orange);
+        }
+
+        .json-badge {
+            display: inline-block;
+            background: #111;
+            color: var(--neon-blue);
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-family: 'Roboto Mono', monospace;
+            margin-top: 10px;
+        }
+
+        /* 工作流图示 */
+        .workflow-diagram {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            margin-top: 60px;
+        }
+
+        .workflow-step {
+            text-align: center;
+        }
+
+        .step-box {
+            width: 100px;
+            height: 100px;
+            background: var(--surface);
+            border: 3px solid var(--neon-blue);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3em;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .step-box:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px var(--neon-blue);
+        }
+
+        .workflow-arrow {
+            font-size: 3em;
+            color: var(--glow-orange);
+        }
+
+        /* 对比表格 */
+        .comparison-table {
+            width: 100%;
+            margin-top: 40px;
+            border-collapse: collapse;
+            font-size: 1.1em;
+        }
+
+        .comparison-table th {
+            background: var(--surface);
+            color: var(--glow-orange);
+            padding: 20px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .comparison-table td {
+            padding: 20px;
+            border-bottom: 1px solid #444;
+        }
+
+        .comparison-table .old-way {
+            color: #999;
+        }
+
+        .comparison-table .new-way {
+            color: var(--neon-blue);
+            font-weight: bold;
+        }
+
+        .comparison-table .time-row {
+            background: var(--surface);
+        }
+
+        .comparison-table .time-row strong {
+            font-size: 1.3em;
+            color: var(--glow-orange);
+        }
+
+        /* 效率徽章 */
+        .efficiency-badge {
+            margin-top: 40px;
+            padding: 20px 40px;
+            background: linear-gradient(135deg, var(--glow-orange) 0%, var(--cyber-purple) 100%);
+            display: inline-block;
+            border-radius: 50px;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #000;
+            box-shadow: 0 10px 30px rgba(255, 102, 0, 0.5);
+        }
+
+        .badge-number {
+            font-size: 2em;
+            margin-left: 10px;
+        }
+
+        /* 图表容器 */
+        .chart-container {
+            width: 100%;
+            height: 500px;
+            margin-top: 40px;
+        }
+
+        .data-source {
+            margin-top: 30px;
+            font-size: 0.9em;
+            color: var(--text-secondary);
+        }
+
+        /* 引用框 */
+        .quote-box {
+            background: var(--surface);
+            padding: 40px;
+            border-left: 5px solid var(--glow-orange);
+            margin: 40px 0;
+            position: relative;
+        }
+
+        .quote-icon {
+            font-size: 6em;
+            color: var(--glow-orange);
+            opacity: 0.2;
+            position: absolute;
+            top: 10px;
+            left: 20px;
+        }
+
+        .quote-text {
+            font-size: 1.5em;
+            line-height: 1.6;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 洞察卡片 */
+        .insight-cards {
+            display: flex;
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .insight-card {
+            flex: 1;
+            background: var(--surface);
+            padding: 30px;
+            border-radius: 10px;
+            border-top: 5px solid var(--neon-blue);
+        }
+
+        .insight-card h3 {
+            margin-bottom: 15px;
+        }
+
+        /* 行动卡片 */
+        .action-steps {
+            display: flex;
+            gap: 30px;
+            margin-top: 60px;
+        }
+
+        .action-card {
+            flex: 1;
+            background: var(--surface);
+            padding: 30px;
+            border-radius: 15px;
+            border: 2px solid var(--neon-blue);
+            position: relative;
+        }
+
+        .action-number {
+            position: absolute;
+            top: -20px;
+            left: 20px;
+            width: 50px;
+            height: 50px;
+            background: var(--glow-orange);
+            color: #000;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .action-card h3 {
+            margin-top: 20px;
+            margin-bottom: 20px;
+            color: var(--neon-blue);
+        }
+
+        .action-card ul {
+            text-align: left;
+            list-style: none;
+            padding: 0;
+        }
+
+        .action-card li {
+            padding: 10px 0;
+            padding-left: 30px;
+            position: relative;
+        }
+
+        .action-card li:before {
+            content: "▸";
+            position: absolute;
+            left: 0;
+            color: var(--glow-orange);
+        }
+
+        /* 进度条 */
+        .progress-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 1000;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--neon-blue) 0%, var(--glow-orange) 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* 联系信息 */
+        .contact-info {
+            margin-top: 60px;
+            font-size: 1.2em;
+            line-height: 2;
+        }
+
+        .qr-placeholder {
+            margin-top: 40px;
+        }
+
+        .qr-box {
+            display: inline-block;
+            padding: 60px 80px;
+            background: var(--surface);
+            border: 2px dashed var(--neon-blue);
+            border-radius: 15px;
+            font-size: 2em;
+        }
+
+        /* 代码演示框 */
+        .code-demo {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .code-demo pre {
+            margin: 0;
+            color: var(--neon-blue);
+            font-family: 'Roboto Mono', monospace;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+
+        .demo-label {
+            background: var(--glow-orange);
+            color: #000;
+            padding: 5px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+
+            <!-- 封面 -->
+            <section data-background-color="#1a1a1a">
+                <h1>拒绝<span class="highlight">无效</span>加班</h1>
+                <h2 style="border: none; color: var(--neon-blue);">构建你的"汇报引擎"</h2>
+                <div class="tech-stack">
+                    <span class="tech-item">Gemini</span>
+                    <span class="operator">+</span>
+                    <span class="tech-item">Trae</span>
+                    <span class="operator">=</span>
+                    <span class="tech-item highlight">超级工作流</span>
+                </div>
+                <p style="margin-top: 80px; color: var(--text-secondary); font-size: 1.2em;">Howie 黄楚皓 | 2025.11.26</p>
+            </section>
+
+            <!-- 痛点 -->
+            <section data-background-color="#1a1a1a">
+                <h2>我们被什么困住了？</h2>
+                <div class="pain-points">
+                    <div class="pain-item">
+                        <span class="icon">📊</span>
+                        <p>数据变了 = 重新截图？</p>
+                    </div>
+                    <div class="pain-item">
+                        <span class="icon">🔄</span>
+                        <p>老板改需求 = 推倒重排？</p>
+                    </div>
+                    <div class="pain-item">
+                        <span class="icon">📄</span>
+                        <p>PPT 文件 = 静态死图，无法交互？</p>
+                    </div>
+                </div>
+                <p style="font-size: 3em; margin-top: 40px; color: #dc2626;">♻️ ✕</p>
+                <p style="color: var(--text-secondary);">告别重复劳动的时候到了</p>
+            </section>
+
+            <!-- 核心隐喻 -->
+            <section data-background-color="#1a1a1a">
+                <h2>建筑师 × 3D打印机</h2>
+                <div class="metaphor-container">
+                    <div class="metaphor-card">
+                        <div class="card-icon">🏗️</div>
+                        <h3>Gemini = 建筑师</h3>
+                        <ul>
+                            <li>看懂杂乱的图纸（多模态数据）</li>
+                            <li>输出标准施工方案（JSON数据）</li>
+                            <li>逻辑桥接 & 点石成金</li>
+                        </ul>
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="metaphor-card">
+                        <div class="card-icon">🖨️</div>
+                        <h3>Trae = 3D打印机</h3>
+                        <ul>
+                            <li>听懂自然语言描述</li>
+                            <li>直接打印成交互式网页</li>
+                            <li>一键全局修改样式</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Gemini 任务 -->
+            <section data-background-color="#1a1a1a">
+                <h2>Gemini：别只把它当聊天机器人</h2>
+                <div class="process-flow">
+                    <div class="process-step">
+                        <div class="step-number">1</div>
+                        <h3 style="margin-left: 40px;">暴风吸入</h3>
+                        <p style="margin-left: 40px;">PDF / Excel / 图片 / 录音稿</p>
+                    </div>
+                    <div class="process-step">
+                        <div class="step-number">2</div>
+                        <h3 style="margin-left: 40px;">逻辑桥接</h3>
+                        <p style="margin-left: 40px;">发现数据背后的关联</p>
+                    </div>
+                    <div class="process-step highlight-step">
+                        <div class="step-number">3</div>
+                        <h3 style="margin-left: 40px;">点石成金</h3>
+                        <p style="margin-left: 40px;">输出 <span class="json-badge">JSON</span> - 机器之间的"普通话"</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Trae 任务 -->
+            <section data-background-color="#1a1a1a">
+                <h2>Trae：说出想法，剩下交给它</h2>
+                <div class="workflow-diagram">
+                    <div class="workflow-step">
+                        <div class="step-box">💬</div>
+                        <p>自然语言</p>
+                    </div>
+                    <div class="workflow-arrow">→</div>
+                    <div class="workflow-step">
+                        <div class="step-box">⚙️</div>
+                        <p>自动编码</p>
+                    </div>
+                    <div class="workflow-arrow">→</div>
+                    <div class="workflow-step">
+                        <div class="step-box">👁️</div>
+                        <p>实时预览</p>
+                    </div>
+                    <div class="workflow-arrow">→</div>
+                    <div class="workflow-step">
+                        <div class="step-box">✨</div>
+                        <p>一键修改</p>
+                    </div>
+                </div>
+                <div style="margin-top: 60px; font-size: 1.5em;">
+                    <p>你不需要懂代码</p>
+                    <p class="highlight">你只需要懂"描述"</p>
+                </div>
+            </section>
+
+            <!-- 工作流对比 -->
+            <section data-background-color="#1a1a1a">
+                <h2>效率革命：10分钟 vs 2小时</h2>
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>环节</th>
+                            <th>传统流程</th>
+                            <th>AI 工作流</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>数据准备</td>
+                            <td class="old-way">Excel 手动整理</td>
+                            <td class="new-way">Gemini 自动清洗</td>
+                        </tr>
+                        <tr>
+                            <td>图表制作</td>
+                            <td class="old-way">图表工具 + 截图</td>
+                            <td class="new-way">JSON → Trae 渲染</td>
+                        </tr>
+                        <tr>
+                            <td>排版美化</td>
+                            <td class="old-way">PPT 手动排版</td>
+                            <td class="new-way">自然语言指令</td>
+                        </tr>
+                        <tr>
+                            <td>修改迭代</td>
+                            <td class="old-way">重新截图 + 调整</td>
+                            <td class="new-way">改数据自动更新</td>
+                        </tr>
+                        <tr class="time-row">
+                            <td><strong>总耗时</strong></td>
+                            <td><strong>2 小时</strong></td>
+                            <td class="new-way"><strong>10 分钟</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="efficiency-badge">
+                    <span class="badge-text">效率提升</span>
+                    <span class="badge-number">12X</span>
+                </div>
+            </section>
+
+            <!-- 实战演示预告 -->
+            <section data-background-color="#ff6600">
+                <h1 style="color: #000; text-shadow: none;">Let's Build It.</h1>
+                <h2 style="color: #222; border: none; margin-top: 40px;">现场实操演示</h2>
+            </section>
+
+            <!-- 演示：Gemini 数据清洗 -->
+            <section data-background-color="#1a1a1a">
+                <h2>演示 1：Gemini 数据清洗</h2>
+                <div class="code-demo">
+                    <div class="demo-label">输入素材</div>
+                    <pre>邮件：华东区7月咖啡机500台，单价2000元；8月缺货300台；9月回升600台
+会议：华南区7月40万，8月45万，9月促销80万
+反馈：华北区稳定，每月50万</pre>
+                </div>
+                <div class="code-demo">
+                    <div class="demo-label">Gemini Prompt</div>
+                    <pre>请分析上述数据，计算三个大区7-9月每月销售额（万元）
+要求：直接输出 JSON 格式
+结构：Region（区域）, Month（月份）, Sales（销售额）</pre>
+                </div>
+                <div class="code-demo" style="margin-top: 20px;">
+                    <div class="demo-label">输出结果 (JSON)</div>
+                    <pre id="jsonOutput">等待 Gemini 生成...</pre>
+                </div>
+            </section>
+
+            <!-- 演示：Trae 生成图表 -->
+            <section data-background-color="#1a1a1a">
+                <h2>演示 2：数据可视化（实时渲染）</h2>
+                <div id="salesChart" class="chart-container"></div>
+                <div class="data-source">
+                    <p>✓ 数据来源：Gemini 清洗后的 JSON</p>
+                    <p>✓ 渲染引擎：ECharts (由 Trae 自动生成代码)</p>
+                    <p>✓ 交互功能：鼠标悬停查看详情，点击图例切换显示</p>
+                </div>
+            </section>
+
+            <!-- 演示：样式修改 -->
+            <section data-background-color="#1a1a1a">
+                <h2>演示 3：全局样式修改</h2>
+                <div class="code-demo">
+                    <div class="demo-label">Trae Prompt</div>
+                    <pre>全局修改样式：
+1. 标题改为"霓虹蓝" (#00f3ff)，添加发光效果
+2. 图表配色改为"蓝紫渐变"
+3. 增加自动播放进度条</pre>
+                </div>
+                <div style="margin-top: 40px; font-size: 1.3em;">
+                    <p>⚡ <span class="highlight">修改时间：30 秒</span></p>
+                    <p>💡 传统方式需要：1 小时（重新设计 + 调试）</p>
+                </div>
+            </section>
+
+            <!-- 总结 -->
+            <section data-background-color="#1a1a1a">
+                <h2>核心洞察 (Takeaway)</h2>
+                <div class="quote-box">
+                    <div class="quote-icon">"</div>
+                    <p class="quote-text">未来的核心能力，不是"画图表"</p>
+                    <p class="quote-text highlight">而是<strong>"定义数据结构"</strong></p>
+                </div>
+                <div class="insight-cards">
+                    <div class="insight-card">
+                        <h3>🎯 掌握数据流</h3>
+                        <p>Data Flow 比 Design 更重要</p>
+                    </div>
+                    <div class="insight-card">
+                        <h3>🎼 成为指挥家</h3>
+                        <p>指挥 AI，而不是被工具指挥</p>
+                    </div>
+                    <div class="insight-card">
+                        <h3>⚡ 动态 > 静态</h3>
+                        <p>HTML PPT 能实时更新数据</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 行动指南 -->
+            <section data-background-color="#1a1a1a">
+                <h2>立即开始你的汇报引擎</h2>
+                <div class="action-steps">
+                    <div class="action-card">
+                        <div class="action-number">01</div>
+                        <h3>今天（30分钟）</h3>
+                        <ul>
+                            <li>注册 Gemini & Trae 账号</li>
+                            <li>尝试第一次数据清洗</li>
+                            <li>生成简单 HTML PPT</li>
+                        </ul>
+                    </div>
+                    <div class="action-card">
+                        <div class="action-number">02</div>
+                        <h3>本周（2小时）</h3>
+                        <ul>
+                            <li>完成一份工作汇报迁移</li>
+                            <li>学会 5 个常用 Prompt</li>
+                            <li>建立 JSON 模板库</li>
+                        </ul>
+                    </div>
+                    <div class="action-card">
+                        <div class="action-number">03</div>
+                        <h3>本月（持续）</h3>
+                        <ul>
+                            <li>所有常规汇报改为动态版</li>
+                            <li>培训团队成员使用</li>
+                            <li>打造团队标准流程</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 结束页 -->
+            <section data-background-color="#1a1a1a">
+                <h1 class="neon-title">让数据自己说话</h1>
+                <h2 style="border: none; color: var(--text-secondary);">你只需要设计逻辑</h2>
+                <div class="contact-info">
+                    <p>Howie 黄楚皓</p>
+                    <p>微信：YingkeAI</p>
+                    <p>营客科技产品团队</p>
+                </div>
+                <div class="qr-placeholder">
+                    <div class="qr-box">📱</div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- 进度条 -->
+    <div class="progress-bar">
+        <div class="progress-fill"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reveal.min.js"></script>
+    <script>
+        // 初始化 Reveal.js
+        Reveal.initialize({
+            controls: true,
+            progress: true,
+            center: true,
+            hash: true,
+            transition: 'slide',
+            backgroundTransition: 'fade',
+            width: 1920,
+            height: 1080,
+        });
+
+        // 进度条更新
+        Reveal.on('slidechanged', event => {
+            const totalSlides = Reveal.getTotalSlides();
+            const progress = (event.indexh / (totalSlides - 1)) * 100;
+            document.querySelector('.progress-fill').style.width = progress + '%';
+        });
+
+        // 模拟 Gemini 生成的 JSON 数据
+        const salesDataJSON = {
+            "data": [
+                {"Region": "华东区", "Month": "7月", "Sales": 100},
+                {"Region": "华东区", "Month": "8月", "Sales": 60},
+                {"Region": "华东区", "Month": "9月", "Sales": 120},
+                {"Region": "华南区", "Month": "7月", "Sales": 40},
+                {"Region": "华南区", "Month": "8月", "Sales": 45},
+                {"Region": "华南区", "Month": "9月", "Sales": 80},
+                {"Region": "华北区", "Month": "7月", "Sales": 50},
+                {"Region": "华北区", "Month": "8月", "Sales": 50},
+                {"Region": "华北区", "Month": "9月", "Sales": 50}
+            ]
+        };
+
+        // 显示 JSON 输出
+        document.getElementById('jsonOutput').textContent = JSON.stringify(salesDataJSON, null, 2);
+
+        // ECharts 销售数据图表
+        window.addEventListener('load', function() {
+            const chartDom = document.getElementById('salesChart');
+            if (!chartDom) return;
+
+            const myChart = echarts.init(chartDom);
+
+            // 数据处理
+            const regions = ['华东区', '华南区', '华北区'];
+            const months = ['7月', '8月', '9月'];
+            const seriesData = regions.map(region => {
+                return {
+                    name: region,
+                    type: 'bar',
+                    data: salesDataJSON.data
+                        .filter(item => item.Region === region)
+                        .map(item => item.Sales),
+                    itemStyle: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                            { offset: 0, color: region === '华东区' ? '#00f3ff' : region === '华南区' ? '#a855f7' : '#f59e0b' },
+                            { offset: 1, color: region === '华东区' ? '#0066ff' : region === '华南区' ? '#6b21a8' : '#d97706' }
+                        ])
+                    },
+                    animationDelay: function (idx) {
+                        return idx * 200;
+                    }
+                };
+            });
+
+            const option = {
+                backgroundColor: 'transparent',
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'shadow'
+                    },
+                    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                    borderColor: '#00f3ff',
+                    borderWidth: 2,
+                    textStyle: {
+                        color: '#fff',
+                        fontSize: 16
+                    },
+                    formatter: function(params) {
+                        let result = params[0].name + '<br/>';
+                        params.forEach(item => {
+                            result += item.marker + ' ' + item.seriesName + ': ' + item.value + '万元<br/>';
+                        });
+                        return result;
+                    }
+                },
+                legend: {
+                    data: regions,
+                    textStyle: {
+                        color: '#fff',
+                        fontSize: 18
+                    },
+                    top: 30,
+                    itemWidth: 30,
+                    itemHeight: 20
+                },
+                grid: {
+                    left: '5%',
+                    right: '5%',
+                    bottom: '10%',
+                    top: '20%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    data: months,
+                    axisLine: {
+                        lineStyle: {
+                            color: '#666',
+                            width: 2
+                        }
+                    },
+                    axisLabel: {
+                        color: '#fff',
+                        fontSize: 16,
+                        fontWeight: 'bold'
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '销售额(万元)',
+                    nameTextStyle: {
+                        color: '#fff',
+                        fontSize: 16,
+                        padding: [0, 0, 0, 50]
+                    },
+                    axisLine: {
+                        show: true,
+                        lineStyle: {
+                            color: '#666',
+                            width: 2
+                        }
+                    },
+                    axisLabel: {
+                        color: '#fff',
+                        fontSize: 14
+                    },
+                    splitLine: {
+                        lineStyle: {
+                            color: '#333',
+                            type: 'dashed'
+                        }
+                    }
+                },
+                series: seriesData,
+                animationEasing: 'elasticOut',
+                animationDelay: function (idx) {
+                    return idx * 50;
+                }
+            };
+
+            myChart.setOption(option);
+
+            // 响应式
+            window.addEventListener('resize', function() {
+                myChart.resize();
+            });
+
+            // 自动高亮动画
+            let currentIndex = 0;
+            setInterval(() => {
+                myChart.dispatchAction({
+                    type: 'showTip',
+                    seriesIndex: 0,
+                    dataIndex: currentIndex
+                });
+                currentIndex = (currentIndex + 1) % months.length;
+            }, 2000);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 工作流分享 - 欧派案例版</title>
+    <!-- 引入 Reveal.js 样式 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reveal.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/theme/black.min.css">
+    <!-- 自定义欧派风格 CSS -->
+    <style>
+        :root {
+            --oppein-orange: #ff6600;
+            --oppein-gold: #d4af37;
+            --bg-color: #1a1a1a;
+        }
+        body { background-color: var(--bg-color); }
+        .reveal { color: #fff; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+      
+        /* 标题样式 */
+        .reveal h1, .reveal h2, .reveal h3 {
+            text-transform: none;
+            font-weight: 700;
+        }
+        .reveal h1 { color: var(--oppein-orange); font-size: 2.5em; }
+        .reveal h2 { color: #fff; border-bottom: 3px solid var(--oppein-orange); display: inline-block; padding-bottom: 10px; }
+        .highlight { color: var(--oppein-orange); font-weight: bold; }
+        .sub-text { color: #888; font-size: 0.6em; margin-top: 20px; }
+      
+        /* 布局样式 */
+        .container { display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+        .box { 
+            flex: 1; 
+            background: rgba(255,255,255,0.05); 
+            padding: 20px; 
+            border-radius: 10px; 
+            border: 1px solid #333;
+        }
+        .arrow { font-size: 2em; color: var(--oppein-orange); }
+      
+        /* 代码块模拟 */
+        .code-snippet {
+            background: #111;
+            border-left: 5px solid var(--oppein-orange);
+            color: #0f0;
+            font-family: monospace;
+            padding: 15px;
+            text-align: left;
+            font-size: 0.6em;
+        }
+    </style>
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+
+            <!-- Slide 1: 封面 -->
+            <section>
+                <h1>拒绝无效加班</h1>
+                <h3>AI 时代的“自动化汇报”革命</h3>
+                <p style="margin-top: 50px; font-size: 1.2em;">Gemini <span style="color:#888">+</span> Trae</p>
+                <p class="sub-text">本演示文稿由 Trae 编写 | 欧派家居实战版</p>
+            </section>
+
+            <!-- Slide 2: 痛点 -->
+            <section>
+                <h2>我们被什么困住了？</h2>
+                <div style="margin-top: 40px; text-align: left; margin-left: 10%;">
+                    <p>❌ <strong>数据源散乱：</strong> 微信群、Excel、竞品截图满天飞</p>
+                    <p>❌ <strong>需求反复变：</strong> 老板一句话，报表重做半小时</p>
+                    <p>❌ <strong>PPT 是死图：</strong> 无法交互，看不见数据背后的细节</p>
+                </div>
+            </section>
+
+            <!-- Slide 3: 核心隐喻 -->
+            <section>
+                <h2>新工作流：建筑师 + 3D打印机</h2>
+                <div class="container" style="margin-top: 40px;">
+                    <div class="box">
+                        <h3 style="color: #4285F4;">Gemini</h3>
+                        <p><strong>首席建筑师</strong></p>
+                        <p style="font-size: 0.7em;">负责看懂杂乱图纸<br>输出标准方案</p>
+                    </div>
+                    <div class="arrow">+</div>
+                    <div class="box">
+                        <h3 style="color: #fff;">Trae</h3>
+                        <p><strong>3D 打印机</strong></p>
+                        <p style="font-size: 0.7em;">听懂自然语言<br>瞬间构建成品</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 4: 案例引入 -->
+            <section>
+                <h2>实战案例：欧派家居 Q3 复盘</h2>
+                <div style="margin-top: 30px;">
+                    <p>场景：双11刚过，你需要整理以下“脏数据”：</p>
+                    <div style="font-size: 0.8em; color: #ccc;">
+                        <span>📱 导购群的战报文本</span> <br>
+                        <span>🔧 安装师傅的售后吐槽</span> <br>
+                        <span>🖼️ 索菲亚/尚品宅配的竞品海报</span>
+                    </div>
+                    <p class="highlight" style="margin-top: 30px;">目标：10分钟生成交互式大屏</p>
+                </div>
+            </section>
+
+            <!-- Slide 5: 数据流（关键知识点） -->
+            <section>
+                <h2>The Data Flow</h2>
+                <p style="font-size: 0.7em; margin-bottom: 30px;">这是今天唯一的“技术”概念</p>
+                <div class="container">
+                    <div class="box" style="font-size: 0.8em;">脏数据<br>(Raw Data)</div>
+                    <div class="arrow">→</div>
+                    <div class="box" style="font-size: 0.8em; border-color: var(--oppein-orange);">
+                        JSON<br>(数据胶囊)
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="box" style="font-size: 0.8em;">HTML PPT<br>(交互网页)</div>
+                </div>
+                <div class="code-snippet" style="margin-top: 20px;">
+                    { "city": "广州", "sales": 120 } <br>
+                    // 机器只认这个胶囊，别给它看作文！
+                </div>
+            </section>
+
+            <!-- Slide 6: 演示环节 -->
+            <section data-background-color="#ff6600">
+                <h1 style="color: #fff;">Let's Build It.</h1>
+                <p>现场实操演示</p>
+                <p style="font-size: 0.6em;">(请切换至 Trae 界面)</p>
+            </section>
+
+            <!-- Slide 7: 总结 -->
+            <section>
+                <h2>Takeaway</h2>
+                <ul style="margin-top: 40px; line-height: 2;">
+                    <li>不要做搬运工，要做<strong>指挥家</strong>。</li>
+                    <li>Gemini 负责<strong>清洗</strong> (Cleaning)。</li>
+                    <li>Trae 负责<strong>构建</strong> (Building)。</li>
+                    <li>你的核心竞争力是：<strong>定义数据的结构</strong>。</li>
+                </ul>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- 引入 Reveal.js 脚本 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reveal.min.js"></script>
+    <script>
+        Reveal.initialize({
+            controls: true,
+            progress: true,
+            center: true,
+            hash: true,
+            transition: 'fade', // 动画效果
+            backgroundTransition: 'slide'
+        });
+    </script>
+</body>
+</html>

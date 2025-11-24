@@ -635,34 +635,6 @@
             animation: fadeInUp 0.6s ease-out;
         }
 
-        /* ========== 页面内滚动支持 ========== */
-        .reveal .slides section {
-            height: 100%;
-            overflow-y: auto !important;
-            overflow-x: hidden;
-        }
-
-        .reveal .slides {
-            overflow: visible !important;
-        }
-
-        /* 隐藏滚动条但保留滚动功能 */
-        .reveal .slides section::-webkit-scrollbar {
-            width: 0;
-            height: 0;
-            display: none;
-        }
-
-        /* Firefox 隐藏滚动条 */
-        .reveal .slides section {
-            scrollbar-width: none;
-        }
-
-        /* IE/Edge 隐藏滚动条 */
-        .reveal .slides section {
-            -ms-overflow-style: none;
-        }
-
         /* ========== 响应式调整 ========== */
         @media (max-width: 768px) {
             .grid-2, .grid-3, .metaphor-grid, .action-grid {
@@ -966,8 +938,10 @@
                 </p>
             </section>
 
-            <!-- 第8页：场景一 - 组织架构分析 -->
+            <!-- 第8-9页：场景一 - 组织架构分析 (垂直滚动) -->
             <section>
+                <!-- 需求与Prompt页 -->
+                <section>
                 <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 30px;">
                     <span style="font-size: 48px;">👥</span>
                     <div>
@@ -1034,12 +1008,12 @@
                 </div>
 
                 <div style="text-align: center; margin-top: 50px;">
-                    <p style="color: var(--text-muted); font-size: var(--text-sm);">👉 下一页查看完整效果展示</p>
+                    <p style="color: var(--text-muted); font-size: var(--text-sm);">👇 向下滚动查看效果展示</p>
                 </div>
-            </section>
+                </section>
 
-            <!-- 第9页：场景一 - 效果展示 -->
-            <section>
+                <!-- 效果展示页 -->
+                <section>
                 <h2>场景一：组织架构看板</h2>
                 <h3 style="color: var(--text-secondary); margin-top: -10px;">4个维度，一页看懂公司组织全貌</h3>
 
@@ -1057,11 +1031,14 @@
                         <div id="scene1Chart4" style="width: 100%; height: 100%;"></div>
                     </div>
                 </div>
+                </section>
             </section>
 
 
-            <!-- 第10页：场景二 - 广告投放分析 -->
+            <!-- 第10-11页：场景二 - 广告投放分析 (垂直滚动) -->
             <section>
+                <!-- 需求页 -->
+                <section>
                 <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 30px;">
                     <span style="font-size: 48px;">📢</span>
                     <div>
@@ -1135,11 +1112,11 @@
                 </div>
 
                 <div style="text-align: center; margin-top: 50px;">
-                    <p style="color: var(--text-muted); font-size: var(--text-sm);">👉 下一页查看完整效果展示</p>
+                    <p style="color: var(--text-muted); font-size: var(--text-sm);">👇 向下滚动查看效果展示</p>
                 </div>
-            </section>
+                </section>
 
-            <!-- 第11页：场景二 - 效果展示 -->
+            <!-- 效果展示页 -->
             <section>
                 <h2>场景二：广告投放ROI分析</h2>
                 <h3 style="color: var(--text-secondary); margin-top: -10px;">双Y轴图表 + AI专家级洞察,15分钟完成完整分析报告</h3>
@@ -1158,10 +1135,13 @@
                         </div>
                     </div>
                 </div>
+                </section>
             </section>
 
-            <!-- 第12页：场景三 - 业绩数据看板 ⭐ 重点 -->
+            <!-- 第12-13页：场景三 - 业绩数据看板 ⭐ 重点 (垂直滚动) -->
             <section>
+                <!-- 需求页 -->
+                <section>
                 <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 30px;">
                     <span style="font-size: 48px;">📊</span>
                     <span style="background: var(--accent-gradient); padding: 6px 16px; border-radius: 20px; font-size: var(--text-sm); font-weight: 700;">⭐ 重点演示</span>
@@ -1230,11 +1210,11 @@
                 </div>
 
                 <div style="text-align: center; margin-top: 50px;">
-                    <p style="color: var(--text-muted); font-size: var(--text-sm);">👉 下一页查看完整效果展示</p>
+                    <p style="color: var(--text-muted); font-size: var(--text-sm);">👇 向下滚动查看效果展示</p>
                 </div>
-            </section>
+                </section>
 
-            <!-- 第13页：场景三 - 效果展示 -->
+            <!-- 效果展示页 -->
             <section>
                 <h2>场景三：4象限业绩看板</h2>
                 <h3 style="color: var(--text-secondary); margin-top: -10px;">像汽车仪表盘，所有关键指标一目了然</h3>
@@ -1262,10 +1242,13 @@
                         </div>
                     </div>
                 </div>
+                </section>
             </section>
 
-            <!-- 第14页：场景四 - HR 管理看板 -->
+            <!-- 第14-15页：场景四 - HR 管理看板 (垂直滚动) -->
             <section>
+                <!-- 需求页 -->
+                <section>
                 <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 30px;">
                     <span style="font-size: 48px;">🎯</span>
                     <div>
@@ -1331,11 +1314,11 @@
                 </div>
 
                 <div style="text-align: center; margin-top: 50px;">
-                    <p style="color: var(--text-muted); font-size: var(--text-sm);">👉 下一页查看完整效果展示</p>
+                    <p style="color: var(--text-muted); font-size: var(--text-sm);">👇 向下滚动查看效果展示</p>
                 </div>
-            </section>
+                </section>
 
-            <!-- 第15页：场景四 - 效果展示 -->
+            <!-- 效果展示页 -->
             <section>
                 <h2>场景四：HR管理驾驶舱</h2>
                 <h3 style="color: var(--text-secondary); margin-top: -10px;">像汽车仪表盘,人力资源状况一目了然</h3>
@@ -1357,6 +1340,7 @@
                         </div>
                     </div>
                 </div>
+                </section>
             </section>
 
             <!-- 第16页：场景总结 -->
@@ -1541,45 +1525,32 @@
             backgroundTransition: 'fade',
             controls: true,
             progress: true,
-            center: false,  // 关闭垂直居中,允许从顶部开始显示
+            center: true,
             slideNumber: 'c/t',
-            showSlideNumber: 'all',
-
-            // 启用页面内滚动
-            scrollActivationWidth: null,  // 在所有宽度下都启用滚动
-
-            // 允许在幻灯片内滚动
-            scrollProgress: true,
-
-            // 取消固定尺寸限制,使用自适应布局
-            width: '100%',
-            height: '100%',
-            margin: 0.04,
-            minScale: 1,
-            maxScale: 1
+            showSlideNumber: 'all'
         });
 
         // ECharts 销售图表
         // 场景图表初始化
         Reveal.on('slidechanged', event => {
-            // 场景一：组织架构分析 - 效果展示（第9页，索引8）
-            if (event.indexh === 8) {
+            // 场景一：组织架构分析 - 效果展示（第8-9页，水平索引7，垂直索引1）
+            if (event.indexh === 7 && event.indexv === 1) {
                 initScene1Charts();
             }
-            // 场景二：广告投放分析 - 效果展示（第11页，索引10）
-            if (event.indexh === 10) {
+            // 场景二：广告投放分析 - 效果展示（第10-11页，水平索引8，垂直索引1）
+            if (event.indexh === 8 && event.indexv === 1) {
                 initScene2Chart();
             }
-            // 场景三：业绩数据看板 - 效果展示（第13页，索引12）
-            if (event.indexh === 12) {
+            // 场景三：业绩数据看板 - 效果展示（第12-13页，水平索引9，垂直索引1）
+            if (event.indexh === 9 && event.indexv === 1) {
                 initScene3Charts();
             }
-            // 场景四：HR管理看板 - 效果展示（第15页，索引14）
-            if (event.indexh === 14) {
+            // 场景四：HR管理看板 - 效果展示（第14-15页，水平索引10，垂直索引1）
+            if (event.indexh === 10 && event.indexv === 1) {
                 initScene4Charts();
             }
-            // 现场演示（第17页，索引16）
-            if (event.indexh === 16) {
+            // 现场演示（第17页，索引11）
+            if (event.indexh === 11) {
                 initSalesChart();
             }
         });
@@ -1919,7 +1890,7 @@
             });
         }
         Reveal.on('slidechanged', event => {
-            if (event.indexh === 16) { // 第17页（索引从0开始）
+            if (event.indexh === 11) { // 第17页（水平索引11）
                 initSalesChart();
             }
         });

@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>汇报引擎 - 课前手册（精简版）</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 1.5cm;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+            font-size: 10pt;
+            line-height: 1.6;
+            color: #333;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #fff;
+        }
+
+        h1 {
+            color: #0066cc;
+            border-bottom: 3px solid #0066cc;
+            padding-bottom: 0.5em;
+            margin: 1.5em 0 0.8em 0;
+            font-size: 1.8em;
+            page-break-after: avoid;
+        }
+
+        h2 {
+            color: #0088cc;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 0.3em;
+            margin: 1.2em 0 0.6em 0;
+            font-size: 1.4em;
+            page-break-after: avoid;
+        }
+
+        h3 {
+            color: #009999;
+            margin: 1em 0 0.5em 0;
+            font-size: 1.2em;
+            page-break-after: avoid;
+        }
+
+        h4 {
+            color: #555;
+            margin: 0.8em 0 0.4em 0;
+            font-size: 1.1em;
+        }
+
+        p {
+            margin: 0.5em 0;
+        }
+
+        code {
+            background: #f4f4f4;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: "Monaco", "Menlo", "Consolas", monospace;
+            font-size: 0.9em;
+            color: #c7254e;
+        }
+
+        pre {
+            background: #f8f8f8;
+            border: 1px solid #ddd;
+            border-left: 4px solid #0066cc;
+            padding: 12px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin: 1em 0;
+            page-break-inside: avoid;
+        }
+
+        pre code {
+            background: transparent;
+            padding: 0;
+            color: #333;
+            font-size: 0.85em;
+        }
+
+        ul, ol {
+            margin: 0.8em 0;
+            padding-left: 1.5em;
+        }
+
+        li {
+            margin: 0.3em 0;
+        }
+
+        strong {
+            color: #d9534f;
+            font-weight: 600;
+        }
+
+        a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        hr {
+            border: none;
+            border-top: 2px solid #e0e0e0;
+            margin: 1.5em 0;
+        }
+
+        blockquote {
+            background: #fff8dc;
+            border-left: 4px solid #ffc107;
+            padding: 10px 15px;
+            margin: 1em 0;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid #ff9800;
+            padding: 15px;
+            margin: 1em 0;
+        }
+
+        .success-box {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 1em 0;
+        }
+
+        @media print {
+            body {
+                max-width: 100%;
+                padding: 0;
+            }
+
+            h1, h2, h3, h4 {
+                page-break-after: avoid;
+            }
+
+            pre, blockquote {
+                page-break-inside: avoid;
+            }
+
+            a[href^="http"]:after {
+                content: " (" attr(href) ")";
+                font-size: 0.8em;
+                color: #666;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div style="text-align: center; margin-bottom: 30px; padding: 30px 0; border-bottom: 3px solid #0066cc;">
+        <h1 style="border: none; margin: 0; font-size: 2em;">汇报引擎 - 课前手册（精简版）</h1>
+        <p style="font-size: 1.1em; color: #666; margin: 10px 0;">拒绝无效加班：构建你的"汇报引擎"</p>
+        <p style="color: #999; font-size: 0.9em;">讲师：Howie 黄楚皓 | 营客科技 | 更新：2025-11-26</p>
+    </div>
+
+    <h2>📢 重要提示</h2>
+
+    <div class="warning-box">
+        <p><strong>⚠️ 必读：请在上课前 1 天完成本手册的准备工作！</strong></p>
+        <p>本手册只包含<strong>必要的工具配置</strong>，预计耗时 <strong>20-30 分钟</strong></p>
+    </div>
+
+    <p><strong>完成准备工作的好处：</strong></p>
+    <ul>
+        <li>✅ 节省课堂时间（不用现场注册账号）</li>
+        <li>✅ 确保环境正常（避免技术问题卡壳）</li>
+        <li>✅ 获得最佳学习效果（理论+实操无缝衔接）</li>
+    </ul>
+
+    <hr>
+
+    <h2>🎯 课程核心目标</h2>
+
+    <p><strong>你将学会：</strong></p>
+    <ul>
+        <li>用 Gemini 将杂乱数据整理成标准表格（CSV）</li>
+        <li>用 Trae 生成交互式 HTML PPT</li>
+        <li>一句话修改整个 PPT 的样式</li>
+    </ul>
+
+    <p><strong>效率提升：</strong></p>
+    <ul>
+        <li>传统方式：2-4 小时制作一份汇报 PPT</li>
+        <li>AI 方式：10-15 分钟完成同样的工作</li>
+        <li><strong>效率提升：12 倍 🚀</strong></li>
+    </ul>
+
+    <hr>
+
+    <h2>✅ 课前准备清单</h2>
+
+    <div class="warning-box">
+        <h3>🚨 特别重要：VPN 是访问 Gemini 的必要前提！</h3>
+        <p><strong>本课程使用 Google Gemini，中国大陆必须使用 VPN 才能访问！</strong></p>
+        <ul>
+            <li>⭐ VPN 配置是第一步，必须最优先完成</li>
+            <li>⭐ 没有 VPN 将无法参与课程实操</li>
+            <li>⭐ 请在上课前 1 天完成配置并充分测试</li>
+            <li>⭐ 遇到问题立即联系讲师，不要拖到上课当天</li>
+        </ul>
+    </div>
+
+    <p><strong>准备步骤概览（总计约 25-35 分钟）：</strong></p>
+    <ol>
+        <li>第零步：VPN 配置（15 分钟）⭐⭐⭐⭐⭐ 最高优先级</li>
+        <li>第一步：注册 Google Gemini 账号（5 分钟）</li>
+        <li>第二步：下载并安装 Trae 客户端（10 分钟）</li>
+    </ol>
+
+    <hr>
+
+    <h2>第零步：VPN 配置（15 分钟）⭐⭐⭐⭐⭐</h2>
+
+    <div class="warning-box">
+        <p><strong>重要程度：⭐⭐⭐⭐⭐（最高优先级，必须完成！）</strong></p>
+        <p><strong>为什么需要 VPN？</strong></p>
+        <ul>
+            <li>Google Gemini 在中国大陆无法直接访问</li>
+            <li>没有 VPN 将无法完成课程实操</li>
+            <li>必须在上课前 1 天完成配置并测试</li>
+        </ul>
+    </div>
+
+    <h3>0.1 登录 VPN 平台</h3>
+
+    <p><strong>步骤 1：访问平台</strong></p>
+    <pre><code>https://sakura-cat3.com/dashboard</code></pre>
+
+    <blockquote>
+        <p><strong>注意</strong>：直接访问控制面板页面，无需跳转</p>
+    </blockquote>
+
+    <p><strong>步骤 2：登录账号</strong></p>
+    <ul>
+        <li><strong>账号</strong>：<code>yingkeai2025@163.com</code></li>
+        <li><strong>密码</strong>：<code>yingke1234</code></li>
+    </ul>
+
+    <p><strong>检查点：</strong></p>
+    <ul>
+        <li>[ ] 成功访问登录页面</li>
+        <li>[ ] 账号密码输入正确</li>
+        <li>[ ] 成功登录进入控制面板</li>
+    </ul>
+
+    <hr>
+
+    <h3>0.2 下载并安装 VPN 客户端</h3>
+
+    <p><strong>步骤 1：在控制面板下载客户端</strong></p>
+    <ul>
+        <li>登录成功后，在控制面板页面查找"客户端下载"或"Download"区域</li>
+        <li>根据你的操作系统选择对应的客户端</li>
+    </ul>
+
+    <p><strong>Windows 用户：</strong></p>
+    <ol>
+        <li>点击下载 Windows 版客户端</li>
+        <li>下载完成后运行安装程序</li>
+        <li>按照安装向导完成安装</li>
+    </ol>
+
+    <p><strong>macOS 用户：</strong></p>
+    <ol>
+        <li>点击下载 Mac 版客户端</li>
+        <li>打开 .dmg 文件</li>
+        <li>将应用拖入 Applications 文件夹</li>
+    </ol>
+
+    <p><strong>步骤 2：启动客户端并登录</strong></p>
+    <ul>
+        <li>打开已安装的 VPN 客户端</li>
+        <li>使用相同的账号密码登录：<code>yingkeai2025@163.com</code> / <code>yingke1234</code></li>
+    </ul>
+
+    <p><strong>步骤 3：启用系统代理（重要！）</strong></p>
+    <div class="warning-box">
+        <p><strong>⚠️ 必须启用系统代理才能使 VPN 生效！</strong></p>
+    </div>
+    <ul>
+        <li>找到状态栏（屏幕顶部或底部）中的 VPN 应用图标</li>
+        <li><strong>右键点击</strong> VPN 图标</li>
+        <li>在弹出菜单中找到"系统代理"选项</li>
+        <li><strong>勾选"启用系统代理"</strong>（非常关键！）</li>
+    </ul>
+
+    <p><strong>步骤 4：选择服务器节点并连接</strong></p>
+    <div class="warning-box">
+        <p><strong>⚠️ 访问 Gemini 必须选择除香港以外的节点！</strong></p>
+        <p>香港节点无法访问 Google Gemini，请选择其他地区节点</p>
+    </div>
+    <ul>
+        <li>在客户端中选择服务器节点</li>
+        <li><strong>推荐节点</strong>：日本、新加坡、美国等（延迟低的非香港节点）</li>
+        <li><strong>避免选择</strong>：香港节点（无法访问 Gemini）</li>
+        <li>点击"连接"按钮</li>
+        <li>等待连接成功提示</li>
+    </ul>
+
+    <hr>
+
+    <h3>0.3 测试 VPN 连接</h3>
+
+    <div class="warning-box">
+        <p><strong>⚠️ 必须完成以下测试，确保 VPN 可用！</strong></p>
+        <p><strong>关键验证：能否访问 Google Gemini AI Studio</strong></p>
+    </div>
+
+    <p><strong>测试 1：访问 Google</strong></p>
+    <pre><code>https://www.google.com</code></pre>
+    <ul>
+        <li>如果能正常打开 Google 搜索页面，说明 VPN 基本可用</li>
+    </ul>
+
+    <p><strong>测试 2：访问 Gemini AI Studio（关键测试！）</strong></p>
+    <pre><code>https://aistudio.google.com/</code></pre>
+    <ul>
+        <li>✅ <strong>能看到 Gemini 的登录界面</strong> → 配置成功！</li>
+        <li>❌ 无法访问 → 重新检查 VPN 连接状态</li>
+    </ul>
+
+    <p><strong>测试 3：测试连接稳定性</strong></p>
+    <ul>
+        <li>保持 VPN 连接 5 分钟</li>
+        <li>期间刷新几次 <code>aistudio.google.com</code> 页面</li>
+        <li>确保连接不会频繁断开</li>
+    </ul>
+
+    <hr>
+
+    <h3>0.4 常见问题处理</h3>
+
+    <p><strong>Q1：登录链接打不开怎么办？</strong></p>
+    <ul>
+        <li>A：确认网址是否正确：<code>https://sakura-cat3.com/dashboard</code></li>
+        <li>A：可以尝试清除浏览器缓存后重试</li>
+        <li>A：如果仍无法访问，请联系讲师获取最新地址</li>
+    </ul>
+
+    <p><strong>Q2：登录账号密码错误？</strong></p>
+    <ul>
+        <li>A：请仔细核对账号密码，注意大小写</li>
+        <li>A：账号：<code>yingkeai2025@163.com</code>（全小写）</li>
+        <li>A：密码：<code>yingke1234</code>（全小写）</li>
+    </ul>
+
+    <p><strong>Q3：VPN 连接后仍无法访问 Google？</strong></p>
+    <ul>
+        <li>A：尝试切换不同的服务器节点</li>
+        <li>A：检查 VPN 客户端是否显示"已连接"状态</li>
+        <li>A：尝试重启 VPN 客户端</li>
+        <li>A：检查本地防火墙是否拦截</li>
+    </ul>
+
+    <p><strong>Q4：VPN 连接速度很慢？</strong></p>
+    <ul>
+        <li>A：选择延迟较低的服务器节点</li>
+        <li>A：避开网络高峰时段（晚上 8-10 点）</li>
+        <li>A：关闭其他占用带宽的应用</li>
+    </ul>
+
+    <hr>
+
+    <h3>0.5 VPN 配置检查清单（必须全部完成！）</h3>
+
+    <div class="success-box">
+        <p><strong>✅ 完成以下所有检查项，才算配置成功：</strong></p>
+        <ul>
+            <li>[ ] VPN 平台账号登录成功</li>
+            <li>[ ] VPN 客户端已下载并安装</li>
+            <li>[ ] VPN 配置文件已导入</li>
+            <li>[ ] VPN 连接成功（显示已连接状态）</li>
+            <li>[ ] 能正常访问 Google.com</li>
+            <li>[ ] <strong>能正常访问 Gemini (https://aistudio.google.com/)</strong></li>
+            <li>[ ] 连接稳定，不频繁断线</li>
+            <li>[ ] 已测试保持连接 5 分钟以上</li>
+        </ul>
+    </div>
+
+    <div class="warning-box">
+        <p><strong>⚠️ 重要提醒：</strong></p>
+        <ul>
+            <li>VPN 配置是访问 Gemini 的<strong>唯一途径</strong></li>
+            <li>如果无法完成 VPN 配置，将无法参与课程实操</li>
+            <li>请务必在上课前 1 天完成配置，预留足够的故障排查时间</li>
+            <li>遇到问题及时联系讲师，不要等到上课当天！</li>
+        </ul>
+    </div>
+
+    <hr>
+
+    <h2>第一步：注册 Google Gemini 账号（5 分钟）</h2>
+
+    <div class="warning-box">
+        <p><strong>⚠️ 前置条件：必须先完成"第零步：VPN 配置"，否则无法访问 Gemini！</strong></p>
+    </div>
+
+    <h3>1.1 注册步骤</h3>
+
+    <p><strong>1. 确保 VPN 已连接</strong></p>
+    <ul>
+        <li>打开 VPN 客户端并连接</li>
+        <li>确认连接状态为"已连接"</li>
+        <li>测试能否访问 Google.com</li>
+    </ul>
+
+    <p><strong>2. 访问 Gemini 官网</strong></p>
+    <pre><code>https://aistudio.google.com/</code></pre>
+    <blockquote>
+        <p>如果无法打开，请检查 VPN 连接状态</p>
+    </blockquote>
+
+    <p><strong>3. 登录 Google 账号</strong></p>
+    <ul>
+        <li>如果已有 Gmail 账号，直接登录</li>
+        <li>如果没有，需要先注册 Google 账号（同样需要 VPN）</li>
+    </ul>
+
+    <p><strong>4. 接受条款</strong></p>
+    <ul>
+        <li>阅读并同意使用条款</li>
+        <li>选择地区</li>
+    </ul>
+
+    <p><strong>5. 测试访问</strong></p>
+    <ul>
+        <li>点击 "New Chat" 创建新对话</li>
+        <li>输入 "你好" 测试是否能正常响应</li>
+        <li>如果能收到回复，说明账号可用</li>
+    </ul>
+
+    <hr>
+
+    <h3>1.2 常见问题</h3>
+
+    <p><strong>Q：国内能访问吗？</strong></p>
+    <ul>
+        <li>A：<strong>必须使用 VPN</strong>，请完成"第零步：VPN 配置"</li>
+        <li>A：无 VPN 无法访问，这是硬性要求</li>
+    </ul>
+
+    <p><strong>Q：需要付费吗？</strong></p>
+    <ul>
+        <li>A：免费版已足够，每天有额度限制（约 50 次对话）</li>
+        <li>A：付费版（Gemini Advanced）有更高额度，非必需</li>
+    </ul>
+
+    <p><strong>Q：VPN 连接后仍无法打开 Gemini？</strong></p>
+    <ul>
+        <li>A：尝试切换 VPN 服务器节点</li>
+        <li>A：清除浏览器缓存并重试</li>
+        <li>A：检查 VPN 是否真正连接成功</li>
+    </ul>
+
+    <hr>
+
+    <h3>1.3 Gemini 检查清单</h3>
+
+    <div class="success-box">
+        <p><strong>✅ 完成以下检查项：</strong></p>
+        <ul>
+            <li>[ ] <strong>VPN 已连接并测试可用</strong></li>
+            <li>[ ] Google 账号已登录</li>
+            <li>[ ] 能访问 Gemini 界面</li>
+            <li>[ ] 测试对话功能正常（发送"你好"并收到回复）</li>
+            <li>[ ] 记录账号密码（安全保存）</li>
+        </ul>
+    </div>
+
+    <hr>
+
+    <h2>第二步：下载并安装 Trae 客户端（10 分钟）</h2>
+
+    <div class="warning-box">
+        <p><strong>⚠️ 重要：Trae 需要下载客户端，不是网页版！</strong></p>
+        <p>Trae 是桌面应用程序，需要先下载安装客户端才能使用</p>
+    </div>
+
+    <h3>2.1 下载并安装客户端</h3>
+
+    <p><strong>1. 访问 Trae 中文官网</strong></p>
+    <pre><code>https://www.trae.cn/</code></pre>
+
+    <blockquote>
+        <p><strong>注意</strong>：使用中文版 <code>trae.cn</code>，不需要 VPN，国内可直接访问</p>
+    </blockquote>
+
+    <p><strong>2. 下载对应系统的客户端</strong></p>
+    <ul>
+        <li><strong>Windows 用户：</strong> 点击下载 Windows 版本（.exe 文件）</li>
+        <li><strong>macOS 用户：</strong> 点击下载 Mac 版本（.dmg 文件）</li>
+        <li><strong>Linux 用户：</strong> 点击下载 Linux 版本</li>
+    </ul>
+
+    <p><strong>3. 安装客户端</strong></p>
+    <ul>
+        <li>运行下载的安装文件</li>
+        <li>按照安装向导完成安装</li>
+        <li>安装完成后启动 Trae</li>
+    </ul>
+
+    <hr>
+
+    <h3>2.2 注册并登录账号</h3>
+
+    <p><strong>1. 首次打开 Trae</strong></p>
+    <ul>
+        <li>会提示注册或登录账号</li>
+        <li>点击"注册"创建新账号</li>
+    </ul>
+
+    <p><strong>2. 注册账号（推荐方式）</strong></p>
+    <ul>
+        <li>使用微信扫码注册（最快捷）</li>
+        <li>或使用手机号注册</li>
+        <li>或使用邮箱注册</li>
+    </ul>
+
+    <p><strong>3. 完成验证</strong></p>
+    <ul>
+        <li>如果使用手机号/邮箱，需要验证码验证</li>
+        <li>完成新手引导（可跳过）</li>
+    </ul>
+
+    <hr>
+
+    <h3>2.3 测试功能</h3>
+
+    <p><strong>1. 创建测试项目</strong></p>
+    <ul>
+        <li>点击"新建项目"或"New Project"</li>
+        <li>看到代码编辑器界面</li>
+        <li>左侧是对话区，右侧是代码预览区</li>
+    </ul>
+
+    <p><strong>2. 输入测试指令（见下方）</strong></p>
+    <ul>
+        <li>在左侧对话框输入测试指令</li>
+        <li>观察右侧是否生成代码和预览</li>
+    </ul>
+
+    <hr>
+
+    <h3>2.4 测试指令</h3>
+
+    <p><strong>在 Trae 中输入以下测试指令：</strong></p>
+    <pre><code>请创建一个简单的 HTML 页面，标题是 "Hello World"，背景色是蓝色。</code></pre>
+
+    <p>如果 Trae 能生成代码并显示预览，说明功能正常。</p>
+
+    <hr>
+
+    <h3>2.5 常见问题</h3>
+
+    <p><strong>Q：为什么要用中文版 trae.cn？</strong></p>
+    <ul>
+        <li>A：中文版不需要 VPN，国内可直接访问</li>
+        <li>A：界面是中文，更容易上手</li>
+        <li>A：<strong>能够免费使用国内 AI 模型</strong>（国际版需要付费）</li>
+    </ul>
+
+    <p><strong>Q：Trae 是什么？</strong></p>
+    <ul>
+        <li>A：AI 代码生成工具，用自然语言就能生成网页</li>
+        <li>A：课程中用它来生成交互式 HTML PPT</li>
+    </ul>
+
+    <p><strong>Q：免费版够用吗？</strong></p>
+    <ul>
+        <li>A：免费版有使用次数限制，课程够用</li>
+        <li>A：后续可考虑付费版（约 ¥99/月）</li>
+    </ul>
+
+    <p><strong>Q：需要懂编程吗？</strong></p>
+    <ul>
+        <li>A：不需要！用中文描述需求即可</li>
+        <li>A：Trae 会自动生成代码</li>
+    </ul>
+
+    <p><strong>Q：下载和安装会不会很复杂？</strong></p>
+    <ul>
+        <li>A：非常简单，和安装普通软件一样</li>
+        <li>A：下载后双击安装文件，按提示操作即可</li>
+        <li>A：整个过程 5-10 分钟</li>
+    </ul>
+
+    <hr>
+
+    <h3>2.6 Trae 检查清单</h3>
+
+    <div class="success-box">
+        <p><strong>✅ 完成以下检查项：</strong></p>
+        <ul>
+            <li>[ ] Trae 客户端已下载</li>
+            <li>[ ] Trae 客户端已安装</li>
+            <li>[ ] Trae 账号已注册</li>
+            <li>[ ] 能登录并创建项目</li>
+            <li>[ ] 测试代码生成功能正常</li>
+            <li>[ ] 熟悉界面布局（左侧对话，右侧代码预览）</li>
+        </ul>
+    </div>
+
+    <hr>
+
+    <h2>✅ 课前最终检查清单</h2>
+
+    <div class="success-box">
+        <h3>开课前 30 分钟完成最终确认：</h3>
+
+        <p><strong>关键环境检查：</strong></p>
+        <ul>
+            <li>[ ] <strong>VPN 已连接并测试稳定</strong>（最重要！）</li>
+            <li>[ ] <strong>能正常访问 Gemini (https://aistudio.google.com/)</strong></li>
+            <li>[ ] <strong>VPN 客户端保持后台运行</strong></li>
+            <li>[ ] Gemini 能正常对话</li>
+            <li>[ ] Trae 能正常登录和使用</li>
+            <li>[ ] 网络连接稳定</li>
+        </ul>
+
+        <p><strong>材料准备：</strong></p>
+        <ul>
+            <li>[ ] 本手册已打开，随时查阅</li>
+            <li>[ ] 准备好记事本（记录问题）</li>
+        </ul>
+
+        <p><strong>设备调试：</strong></p>
+        <ul>
+            <li>[ ] 调整好设备音量</li>
+            <li>[ ] 屏幕亮度适中</li>
+            <li>[ ] 关闭不必要的后台程序</li>
+        </ul>
+    </div>
+
+    <div class="warning-box">
+        <p><strong>⚠️ 特别提醒：</strong></p>
+        <ul>
+            <li>VPN 必须在开课前 30 分钟连接并测试，确保稳定</li>
+            <li>如果 VPN 有问题，立即联系讲师，不要拖到开课</li>
+            <li>课程期间保持 VPN 连接，中途不要断开</li>
+        </ul>
+    </div>
+
+    <hr>
+
+    <h2>💬 讲师寄语</h2>
+
+    <p>欢迎参加"汇报引擎"课程！</p>
+
+    <p>这套方法不是为了炫技，而是真正解决我们每天都会遇到的问题：<strong>重复性的汇报工作太耗时</strong>。</p>
+
+    <p>通过这 60 分钟的学习，你会发现：</p>
+    <ul>
+        <li>做汇报可以不用加班</li>
+        <li>数据变化不用重新做图</li>
+        <li>老板改需求不用推倒重来</li>
+    </ul>
+
+    <p><strong>最重要的是</strong>：你会理解一个核心理念——未来的工作方式，不是"手工做 PPT"，而是"定义数据结构，让 AI 帮你渲染"。</p>
+
+    <p>掌握这个思维方式，你就能把它应用到更多场景。</p>
+
+    <p>期待在课程中见到你！</p>
+
+    <p>有任何问题，随时在群里@我。</p>
+
+    <p><strong>Let's build it!</strong> 🚀</p>
+
+    <hr>
+
+    <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #e0e0e0; text-align: center; color: #999; font-size: 0.9em;">
+        <p>Howie 黄楚皓 | 营客科技产品团队 | 2025.11.26</p>
+        <p>© 2025 营客科技 | 汇报引擎课程</p>
+        <p><strong>手册结束 | 祝学习愉快！</strong></p>
+    </div>
+</body>
+</html>
